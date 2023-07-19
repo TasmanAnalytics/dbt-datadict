@@ -1,7 +1,6 @@
 import ruamel.yaml
 import logging
 import os
-import sys
 
 class datadict:
 
