@@ -1,1 +1,1 @@
-from class_datadict import datadict
+from .class_datadict import datadict
