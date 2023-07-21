@@ -16,10 +16,36 @@ class datadict:
         self.missing_fields = []
 
     def _init_yaml(self):
+        """
+        Initialize the YAML object and apply YAML configuration.
+
+        This private method is used to initialize the YAML serializer object from the 'ruamel.yaml' library
+        and apply specific configuration settings to it using the '_apply_yaml_config()' method.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         self.yaml = ruamel.yaml.YAML()
         self._apply_yaml_config()
     
     def _apply_yaml_config(self):
+        """
+        Apply YAML configuration settings.
+
+        This private method is used to apply specific configuration settings to the YAML serializer in the
+        object. It sets 'preserve_quotes' to True, which preserves quotes around strings in the output YAML.
+        Additionally, it configures the indentation for mappings and sequences and sets the 'width' parameter
+        for line wrapping in the output YAML.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         self.yaml.preserve_quotes = True
         self.yaml.indent(mapping=2, sequence=4, offset=2)
         self.yaml.width = 200
