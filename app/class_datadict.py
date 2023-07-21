@@ -144,8 +144,8 @@ class datadict:
             self._log(f"Error getting file updates for '{file_path}': {error}", level='error')
         return  {"updated": False}
 
-    def _extract_description_versions(self, existing_fields):
-        descriptions = {}
+    def _collate_metadata(self, existing_fields):
+        metadata = {}
         result = []
         for field in existing_fields:
             name = field['name']
@@ -154,12 +154,12 @@ class datadict:
                 description = field['description']
             else:
                 description = ''
-            if name not in descriptions:
-                descriptions[name] = {'versions': [description], 'description': description, 'models':[model]}
+            if name not in metadata:
+                metadata[name] = {'versions': [description], 'description': description, 'models':[model]}
             else:
-                descriptions[name]['versions'].append(description)
-                descriptions[name]['models'].append(model)
-        for name, info in descriptions.items():
+                metadata[name]['versions'].append(description)
+                metadata[name]['models'].append(model)
+        for name, info in metadata.items():
             result.append({'name': name, 'description': info['description'], 'versions': list(set(info['versions'])), 'models': list(set(info['models']))})
         return result
 
@@ -203,7 +203,7 @@ class datadict:
                     self.apply_data_dictionary_to_file(file_path)
     
     def load_missing_fields(self):
-        existing_field_descriptions = self._extract_description_versions(self.existing_fields)
+        existing_field_descriptions = self._collate_metadata(self.existing_fields)
         missing_fields = self._get_missing_fields(existing_field_descriptions)
         if len(missing_fields) > 0:
             self.dictionary_yml['missing_fields'] = missing_fields
