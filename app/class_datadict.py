@@ -34,32 +34,73 @@ class datadict:
             logging.error(message)
         elif self.detailed_logs:
             logging.info(message)
+    
+    def _try_load_dictionary(self) -> dict:
+        """
+        Tries to load a dictionary from a given path, and if it doesn't exist, creates a new dictionary.
 
-    def _load_dictionary(self):
+        This private method is used to load a dictionary from a specified path. If the file exists at the
+        given path, it loads the dictionary using the `_load_dictionary()` method. If the file doesn't
+        exist, it creates a new dictionary using the `_create_dictionary()` method.
+
+        Returns:
+            dict: A dictionary loaded from the specified path if the file exists, otherwise, a newly created dictionary.
+        """
         if os.path.exists(self.dictionary_path):
-            try:
-                with open(self.dictionary_path, 'r') as file:
-                    self._log(f"Dictionary file '{self.dictionary_path}' loaded successfully.")
-                    return self.yaml.load(file)
-            except FileNotFoundError:
-                self._log(f"Dictionary file '{self.dictionary_path}' not found.", level='error')
-                return None
-            except:
-                self._log(f"Error loading dictionary file '{self.dictionary_path}'", level='error')
-                return None
+            return self._load_dictionary()
         else:
-            try:
-                with open(self.dictionary_path, 'w') as file:
-                    base_yaml = {'dictionary': []}
-                    self.yaml.dump(base_yaml, file)
-                    self._log(f"The file '{self.dictionary_path}' was successfully created.")
-                with open(self.dictionary_path, 'r') as file:
-                    self._log(f"Dictionary file '{self.dictionary_path}' loaded successfully.")
-                    return self.yaml.load(file)
-            except IOError:
-                self._log(f"An error occurred while creating the file '{self.dictionary_path}'.", level='error')
-                raise SystemExit
+            return self._create_dictinary()
 
+    def _load_dictionary(self) -> dict:
+        """
+        Loads a dictionary from a specified path.
+
+        This private method is used to read and load a dictionary from a given YAML file path. It attempts
+        to open the file, read its content, and parse it as a YAML formatted dictionary.
+
+        Returns:
+            dict: The dictionary loaded from the specified YAML file.
+
+        Raises:
+            FileNotFoundError: If the file at the specified path does not exist.
+            Exception: If an error occurs while loading the dictionary from the YAML file.
+        """
+        try:
+            with open(self.dictionary_path, 'r') as file:
+                self._log(f"Dictionary file '{self.dictionary_path}' loaded successfully.")
+                return self.yaml.load(file)
+        except FileNotFoundError:
+            self._log(f"Dictionary file '{self.dictionary_path}' not found.", level='error')
+        except:
+            self._log(f"Error loading dictionary file '{self.dictionary_path}'", level='error')
+            
+
+    def _create_dictinary(self) -> dict:
+        """
+        Creates a new dictionary and saves it to a specified path.
+
+        This private method is used to create a new dictionary, serialize it as a YAML formatted data,
+        and save it to a given file path. The created dictionary will have an initial structure of
+        'base_yaml = {'dictionary': []}'.
+
+        Returns:
+            dict: The newly created dictionary.
+
+        Raises:
+            IOError: If an error occurs while creating or writing to the file.
+            SystemExit: If a critical error occurs during the creation process.
+        """
+        try:
+            with open(self.dictionary_path, 'w') as file:
+                base_yaml = {'dictionary': []}
+                self.yaml.dump(base_yaml, file)
+                self._log(f"The file '{self.dictionary_path}' was successfully created.")
+            with open(self.dictionary_path, 'r') as file:
+                self._log(f"Dictionary file '{self.dictionary_path}' loaded successfully.")
+                return self.yaml.load(file)
+        except IOError:
+            self._log(f"An error occurred while creating the file '{self.dictionary_path}'.", level='error')
+            raise SystemExit
     
     def _format_dictionary(self):
         try:
