@@ -5,6 +5,22 @@ import os
 class datadict:
 
     def __init__(self, dictionary_file_path, detailed_logs=True):
+        """
+        Initialize the object with the given dictionary file path and detailed logging settings.
+
+        This constructor method is used to initialize an instance of the class. It sets the attributes
+        'detailed_logs', 'dictionary_path', 'dictionary_yml', 'dictionary_items', 'existing_fields',
+        and 'missing_fields' based on the provided inputs. The method also initializes logging and YAML
+        configurations and loads the dictionary from the specified file.
+
+        Parameters:
+            dictionary_file_path (str): The file path to the YAML dictionary file.
+            detailed_logs (bool, optional): Determines whether detailed log messages with 'info' level
+                                            should be logged. Defaults to True.
+
+        Returns:
+            None
+        """
         self.detailed_logs = detailed_logs
         self._init_logging()
         self._init_yaml()
