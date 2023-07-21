@@ -25,9 +25,35 @@ class datadict:
         self.yaml.width = 200
     
     def _init_logging(self):
+        """
+        Initialize logging configuration for the object.
+
+        This private method is used to set up the logging configuration for the object. It configures the
+        logging level to INFO and specifies the format of the log messages to display the log level and the
+        log message text.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-    def _log(self, message, level='info'):
+    def _log(self, message, level='info') -> None:
+        """
+        Logs a message with the specified log level.
+
+        This private method is used for logging messages with different log levels, such as 'info', 'warning',
+        and 'error'. If 'detailed_logs' is set to True, messages with 'info' log level will also be logged.
+
+        Parameters:
+            message (str): The log message to be recorded.
+            level (str, optional): The log level to use. Accepted values are 'info' (default), 'warning', and 'error'.
+
+        Returns:
+            None
+        """
         if level == 'warning':
             logging.warning(message)
         elif level == 'error':
