@@ -144,24 +144,55 @@ class datadict:
             self._log(f"Error getting file updates for '{file_path}': {error}", level='error')
         return  {"updated": False}
 
-    def _collate_metadata(self, existing_fields):
+    def _collate_metadata(self, existing_fields) -> list:
+        """
+        Collates metadata from existing field list.
+
+        This function takes a list of dictionaries representing existing fields and organizes the metadata
+        by grouping fields based on their names. For each unique field name, it collects unique models and
+        non-empty descriptions associated with the field.
+
+        Parameters:
+            existing_fields (list of dict): A list of dictionaries, where each dictionary contains information
+                                            about an existing field with keys 'name', 'model', and optionally 'description'.
+
+        Returns:
+            list: A list of dictionaries containing collated metadata for each field. Each dictionary contains
+                keys 'name', 'description', 'versions', and 'models'.
+
+        Example:
+            existing_fields = [
+                {'name': 'booking_id', 'model': 'core__bookings_joined', 'description': 'Booking ID Description'},
+                {'name': 'user_id', 'model': 'core__users_joined'},
+                ...
+            ]
+            result = _collate_metadata(existing_fields)
+        """
         metadata = {}
         result = []
+
+        #extract metadata from existing field list
         for field in existing_fields:
             name = field['name']
             model = field['model']
-            if 'description' in field:
-                description = field['description']
-            else:
-                description = ''
+            description = field.get('description', '')
+
             if name not in metadata:
                 metadata[name] = {'versions': [description], 'description': description, 'models':[model]}
             else:
                 metadata[name]['versions'].append(description)
                 metadata[name]['models'].append(model)
+
+        #summarise metadata
         for name, info in metadata.items():
-            result.append({'name': name, 'description': info['description'], 'versions': list(set(info['versions'])), 'models': list(set(info['models']))})
-        return result
+            versions = list(set([version for version in info['versions'] if version != '']))
+            versions.sort()
+            models = list(set(info['models']))
+            models.sort()
+            result.append({'name': name, 'description': info['description'], 'versions': versions, 'models': models})
+
+        #return field list sorted by name
+        return sorted(result, key=lambda d: d['name'])
 
     def _output_model_file(self, file_path, model_yaml):
         with open(file_path, 'w') as file:
