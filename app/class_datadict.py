@@ -25,8 +25,7 @@ class datadict:
         self._init_logging()
         self._init_yaml()
         self.dictionary_path = dictionary_file_path
-        self.dictionary_yml = self._load_dictionary()
-        self._format_dictionary()
+        self.dictionary_yml = self._format_dictionary(self._load_dictionary())
         self.dictionary_items = self._parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
@@ -139,8 +138,10 @@ class datadict:
                 return self.yaml.load(file)
         except FileNotFoundError:
             self._log(f"Dictionary file '{self.dictionary_path}' not found.", level='error')
-        except:
+            raise
+        except Exception:
             self._log(f"Error loading dictionary file '{self.dictionary_path}'", level='error')
+            raise
             
 
     def _create_dictinary(self) -> dict:
@@ -170,7 +171,7 @@ class datadict:
             self._log(f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists.", level='error')
             raise SystemExit
     
-    def _format_dictionary(self) -> None:
+    def _format_dictionary(self, dictionary_yml) -> dict:
         """
         Format the dictionary data to ensure consistent structure.
 
@@ -180,21 +181,22 @@ class datadict:
         not exist in the YAML data, it will be created with an empty list as the value.
 
         Parameters:
-            None
+            dictionary_yml (dict): The YAML dictionary data to be formatted.
 
         Returns:
-            None
+            dictionary_yml (dict): The formatted dictionary
         """
         try:
-            if 'dictionary' in self.dictionary_yml:
-                if self.dictionary_yml['dictionary'] is not None:
-                    for field_num, field in enumerate(self.dictionary_yml['dictionary']):
+            if 'dictionary' in dictionary_yml:
+                if dictionary_yml['dictionary'] is not None:
+                    for field_num, field in enumerate(dictionary_yml['dictionary']):
                         if 'description' not in field:
-                            self.dictionary_yml['dictionary'][field_num]['description'] = ''
+                            dictionary_yml['dictionary'][field_num]['description'] = ''
                         if 'aliases' not in field:
-                            self.dictionary_yml['dictionary'][field_num]['aliases'] = []
+                            dictionary_yml['dictionary'][field_num]['aliases'] = []
             else:
-                self.dictionary_yml['dictionary'] = []
+                dictionary_yml['dictionary'] = []
+            return dictionary_yml
         except TypeError:
             self._log('There was an error when trying to format the dictionary')
 
@@ -222,7 +224,7 @@ class datadict:
                     for alias in dict_column['aliases']:
                         values.append(alias)
                 except:
-                    values.append('')
+                    pass
             return values
         except TypeError:
             self._log('There was an error when trying to parse the dictionary')
@@ -250,7 +252,7 @@ class datadict:
                 return {"status": "valid", "yaml": yaml}
             else:
                 self._log(f"File '{file_path}' was skipped")
-                return {"status": "invalid", "yaml": yaml}
+                return {"status": "invalid", "yaml": None}
 
 
     def _check_valid_model_file(self, yaml) -> bool:
