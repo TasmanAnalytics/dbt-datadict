@@ -144,24 +144,55 @@ class datadict:
             self._log(f"Error getting file updates for '{file_path}': {error}", level='error')
         return  {"updated": False}
 
-    def _extract_description_versions(self, existing_fields):
-        descriptions = {}
+    def _collate_metadata(self, existing_fields) -> list:
+        """
+        Collates metadata from existing field list.
+
+        This function takes a list of dictionaries representing existing fields and organizes the metadata
+        by grouping fields based on their names. For each unique field name, it collects unique models and
+        non-empty descriptions associated with the field.
+
+        Parameters:
+            existing_fields (list of dict): A list of dictionaries, where each dictionary contains information
+                                            about an existing field with keys 'name', 'model', and optionally 'description'.
+
+        Returns:
+            list: A list of dictionaries containing collated metadata for each field. Each dictionary contains
+                keys 'name', 'description', 'versions', and 'models'.
+
+        Example:
+            existing_fields = [
+                {'name': 'booking_id', 'model': 'core__bookings_joined', 'description': 'Booking ID Description'},
+                {'name': 'user_id', 'model': 'core__users_joined'},
+                ...
+            ]
+            result = _collate_metadata(existing_fields)
+        """
+        metadata = {}
         result = []
+
+        #extract metadata from existing field list
         for field in existing_fields:
             name = field['name']
             model = field['model']
-            if 'description' in field:
-                description = field['description']
+            description = field.get('description', '')
+
+            if name not in metadata:
+                metadata[name] = {'versions': [description], 'description': description, 'models':[model]}
             else:
-                description = ''
-            if name not in descriptions:
-                descriptions[name] = {'versions': [description], 'description': description, 'models':[model]}
-            else:
-                descriptions[name]['versions'].append(description)
-                descriptions[name]['models'].append(model)
-        for name, info in descriptions.items():
-            result.append({'name': name, 'description': info['description'], 'versions': list(set(info['versions'])), 'models': list(set(info['models']))})
-        return result
+                metadata[name]['versions'].append(description)
+                metadata[name]['models'].append(model)
+
+        #summarise metadata
+        for name, info in metadata.items():
+            versions = list(set([version for version in info['versions'] if version != '']))
+            versions.sort()
+            models = list(set(info['models']))
+            models.sort()
+            result.append({'name': name, 'description': info['description'], 'versions': versions, 'models': models})
+
+        #return field list sorted by name
+        return sorted(result, key=lambda d: d['name'])
 
     def _output_model_file(self, file_path, model_yaml):
         with open(file_path, 'w') as file:
@@ -203,7 +234,7 @@ class datadict:
                     self.apply_data_dictionary_to_file(file_path)
     
     def load_missing_fields(self):
-        existing_field_descriptions = self._extract_description_versions(self.existing_fields)
+        existing_field_descriptions = self._collate_metadata(self.existing_fields)
         missing_fields = self._get_missing_fields(existing_field_descriptions)
         if len(missing_fields) > 0:
             self.dictionary_yml['missing_fields'] = missing_fields
