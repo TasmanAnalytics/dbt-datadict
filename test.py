@@ -142,18 +142,8 @@ class TestDataDict(unittest.TestCase):
                            {'name': 'field2', 'model': 'model1', 'description': 'desc3'},
                            {'name': 'field2', 'model': 'model2'}]
         result = self.datadict_instance._collate_metadata(existing_fields)
-        expected_result = [{'name': 'field1', 'description': 'desc1', 'versions': ['desc1', 'desc2'], 'models': ['model1', 'model2']},
-                           {'name': 'field2', 'description': 'desc3', 'versions': ['desc3'], 'models': ['model1', 'model2']}]
-        self.assertEqual(result, expected_result)
-
-    def test_get_missing_fields(self):
-        # Test getting missing fields
-        existing_fields = [{'name': 'field1', 'model': 'model1'},
-                           {'name': 'field2', 'model': 'model2'},
-                           {'name': 'field3', 'model': 'model1'}]
-        self.datadict_instance.dictionary_items = ['field1', 'field3']
-        result = self.datadict_instance._get_missing_fields(existing_fields)
-        expected_result = [{'name': 'field2', 'model': 'model2'}]
+        expected_result = [{'name': 'field1', 'description': '', 'description_versions': ['desc1', 'desc2'], 'models': ['model1', 'model2']},
+                           {'name': 'field2', 'description': 'desc3', 'models': ['model1', 'model2']}]
         self.assertEqual(result, expected_result)
 
     def test_apply_data_dictionary_to_file(self):
@@ -190,25 +180,23 @@ class TestDataDict(unittest.TestCase):
         self.assertEqual(updated_yaml1, expected_yaml1)
         self.assertEqual(updated_yaml2, expected_yaml2)
 
-    def test_load_missing_fields(self):
+    def test_collate_output_dictionary(self):
         # Test loading missing fields with existing fields
-        self.datadict_instance.dictionary_yml = {"dictionary": [{'name': 'field1', 'description': 'new_desc'}]}
         self.datadict_instance.existing_fields = [
             {'name': 'field3', 'model': 'model1', 'description': 'desc1'},
             {'name': 'field3', 'model': 'model2', 'description': 'desc2'},
             {'name': 'field4', 'model': 'model1', 'description': 'desc3'},
             {'name': 'field4', 'model': 'model2'}]
 
-        self.datadict_instance.load_missing_fields()
+        self.datadict_instance.collate_output_dictionary()
 
         with open(self.datadict_instance.dictionary_path, 'r') as file:
             new_dict = self.datadict_instance.yaml.load(file)
-        
         expected_missing_fields = [
-            {'name': 'field3', 'description': 'desc1', 'versions': ['desc1', 'desc2'], 'models': ['model1', 'model2']}, 
-            {'name': 'field4', 'description': 'desc3', 'versions': ['desc3'], 'models': ['model1', 'model2']}]
+            {'name': 'field3', 'description': '', 'description_versions': ['desc1', 'desc2'], 'models': ['model1', 'model2']},
+            {'name': 'field4', 'description': 'desc3', 'models': ['model1', 'model2']}]
         
-        self.assertEqual(new_dict['missing_fields'], expected_missing_fields)
+        self.assertEqual(new_dict['dictionary'], expected_missing_fields)
 
 
     # Add more test methods here for other functionalities if needed
