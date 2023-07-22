@@ -11,4 +11,4 @@ def cli():
 def apply(dictionary, directory):
     dictionary = app.datadict(dictionary, detailed_logs=True)
     dictionary.apply_data_dictionary_to_path(directory)
-    dictionary.load_missing_fields()
+    dictionary.collate_output_dictionary()
