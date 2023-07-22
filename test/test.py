@@ -1,7 +1,7 @@
 import unittest
 import os
 import tempfile
-import app
+import datadict
 import shutil
 
 class TestDataDict(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestDataDict(unittest.TestCase):
             file.write("dictionary:\n")
 
         # Create an instance of the datadict class with the test dictionary
-        self.datadict_instance = app.datadict(self.dictionary_file)
+        self.datadict_instance = datadict.datadict(self.dictionary_file)
 
     def tearDown(self):
         # Remove the temporary directory and its contents after the test

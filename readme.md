@@ -12,7 +12,7 @@ The dbt Data Dictionary is a command-line tool that provides helpful tools to im
 1. Install dbt data dictionary using
     
     ```bash
-    pip install dbt_datadict
+    pip install datadict
     ```
     
 
@@ -27,7 +27,7 @@ This command applies data dictionary updates to all model YAML files in the spec
 ### **Usage:**
 
 ```bash
-$ dbt_datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
+$ datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
 ```
 
 ### **Options:**
@@ -60,7 +60,7 @@ models:
         description: 'field_3_description_1'
 ```
 
-Running `dbt_datadict apply` would create a data dictionary as follows:
+Running `datadict apply` would create a data dictionary as follows:
 
 ```yaml
 dictionary:
@@ -82,7 +82,7 @@ dictionary:
       - model_2
 ```
 
-For `field_1` there were two different descriptions detected within the model file, so these are contained within the `description_versions` field in the dictionary. To enable the dictionary to apply a consistent description for `field_1` the user must enter description in the `description` field, and rerun `dbt_datadict apply` .
+For `field_1` there were two different descriptions detected within the model file, so these are contained within the `description_versions` field in the dictionary. To enable the dictionary to apply a consistent description for `field_1` the user must enter description in the `description` field, and rerun `datadict apply` .
 
 ```yaml
 dictionary:
