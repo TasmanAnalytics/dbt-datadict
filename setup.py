@@ -26,6 +26,6 @@ setup(
     ],
     entry_points = '''
         [console_scripts]
-        dbt_datadict=dbt_datadictionary:cli
+        datadict=datadict:cli
     '''
 )
