@@ -1,6 +1,7 @@
 import ruamel.yaml
 import logging
 import os
+from datadict import datadict_helpers
 
 class datadict:
 
@@ -450,6 +451,7 @@ class datadict:
         try:
             with open(self.dictionary_path, 'w') as file:
                 self.yaml.dump(self.dictionary_yml, file)
+                datadict_helpers.add_spaces_between_cols(self.dictionary_path)
             self._log(f"Dictionary '{self.dictionary_path}' has been updated")
         except Exception as error:
             self._log(f"There was a problem updating dictionary '{self.dictionary_path}'. {error}", level='error')
