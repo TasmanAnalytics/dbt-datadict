@@ -231,51 +231,6 @@ class datadict:
             return values
         except TypeError:
             self._log('There was an error when trying to parse the dictionary')
-    
-
-    def _open_model_yml_file(self, file_path) -> dict:
-        """
-        Open and load a model YAML file for processing.
-
-        This private method is used to open and load a YAML file from the provided file path. The function
-        attempts to read and parse the file using the YAML parser. If the YAML data represents a valid model,
-        it returns a dictionary with the status as "valid" and the loaded YAML data. Otherwise, it logs a
-        message indicating that the file was skipped and returns a dictionary with the status as "invalid".
-
-        Parameters:
-            file_path (str): The path to the YAML file to be opened and loaded.
-
-        Returns:
-            dict: A dictionary with the keys "status" and "yaml". The "status" key will be either "valid" or "invalid".
-                The "yaml" key will contain the loaded YAML data if valid, otherwise, it will contain None.
-        """
-        with open(file_path, 'r+') as file:
-            yaml = self.yaml.load(file)
-            if self._check_valid_model_file(yaml):
-                return {"status": "valid", "yaml": yaml}
-            else:
-                self._log(f"File '{file_path}' was skipped")
-                return {"status": "invalid", "yaml": None}
-
-
-    def _check_valid_model_file(self, yaml) -> bool:
-        """
-        Check if the parsed YAML data represents a valid model.
-
-        This private method is used to check whether the parsed YAML data contains the required 'models'
-        key, indicating that it represents a valid model file.
-
-        Parameters:
-            yaml (dict): The parsed YAML data.
-
-        Returns:
-            bool: True if the YAML data contains the required 'models' key, False otherwise.
-        """
-        try:
-            valid = yaml['models']
-            return True
-        except:
-            return False
 
     def _insert_dict_item(self, dictionary, key, value, index) -> dict:
         """
@@ -415,24 +370,6 @@ class datadict:
 
         #return field list sorted by name
         return sorted(result, key=lambda d: d['name'])
-
-    def _output_model_file(self, file_path, model_yaml) -> None:
-        """
-        Output the updated model YAML data to a file.
-
-        This private method is used to write the updated model YAML data to a file specified by the 'file_path'.
-        The function takes the 'model_yaml' data as input and writes it to the file using the YAML serializer.
-
-        Parameters:
-            file_path (str): The path to the file where the updated model YAML should be written.
-            model_yaml (dict): The updated model YAML data to be written to the file.
-
-        Returns:
-            None
-        """
-        with open(file_path, 'w') as file:
-            self.yaml.dump(model_yaml, file)
-        self._log(f'File {file_path} has been updated')
     
     def _output_dictionary(self) -> None:
         """
@@ -473,12 +410,13 @@ class datadict:
             None
         """
         self._log(f"Checking file '{file_path}'...")  
-        model_yaml = self._open_model_yml_file(file_path)
+        model_yaml = datadict_helpers.open_model_yml_file(self.yaml, file_path)
         if model_yaml['status'] == 'valid':
             try:
                 updates = self._iterate_dictionary_update(model_yaml['yaml'], file_path)
                 if updates['updated']:
-                    self._output_model_file(file_path, updates['model_yaml'])
+                    datadict_helpers.output_model_file(self.yaml, file_path, updates['model_yaml'])
+                    self._log(f'File {file_path} has been updated')
                 else:
                     self._log(f"No updates found for file '{file_path}'")
             

@@ -3,6 +3,8 @@ import os
 import tempfile
 import datadict
 import shutil
+import ruamel.yaml
+from datadict import datadict_helpers
 
 class TestDataDict(unittest.TestCase):
 
@@ -69,35 +71,6 @@ class TestDataDict(unittest.TestCase):
         test_dictionary = {'dictionary': [{'name': 'field1', 'aliases': ['f1', 'alias1']}, {'name': 'field2'}]}
         result = self.datadict_instance._parse_aliases(test_dictionary)
         self.assertEqual(result, ['field1', 'f1', 'alias1', 'field2'])
-
-    def test_open_model_yml_file(self):
-        # Test opening a valid model YAML file
-        model_yaml_file = os.path.join(self.temp_dir, 'model_file.yml')
-        model_yaml = {"models": [{"name": "test_model", "columns": [{'name': 'field1', 'description': 'old_desc'}]}]}
-        with open(model_yaml_file, 'w') as file:
-            self.datadict_instance.yaml.dump(model_yaml, file)
-        result = self.datadict_instance._open_model_yml_file(model_yaml_file)
-        self.assertTrue(result['status'] == 'valid')
-        self.assertIsInstance(result['yaml'], dict)
-
-        # Test opening an invalid model YAML file
-        invalid_model_yaml_file = os.path.join(self.temp_dir, 'invalid_model_file.yml')
-        with open(invalid_model_yaml_file, 'w') as file:
-            file.write("invalid_data:\n")
-        result = self.datadict_instance._open_model_yml_file(invalid_model_yaml_file)
-        self.assertTrue(result['status'] == 'invalid')
-        self.assertIsNone(result['yaml'])
-
-    def test_check_valid_model_file(self):
-        # Test checking a valid model YAML data
-        valid_model_yaml = {'models': [{'name': 'model1', 'columns': [{'name': 'column1', 'description': 'desc1'}]}]}
-        result = self.datadict_instance._check_valid_model_file(valid_model_yaml)
-        self.assertTrue(result)
-
-        # Test checking an invalid model YAML data
-        invalid_model_yaml = {'invalid_data': 'data'}
-        result = self.datadict_instance._check_valid_model_file(invalid_model_yaml)
-        self.assertFalse(result)
 
     def test_insert_dict_item(self):
         test_dict = {'key1': 'value1', 'key3': 'value3'}
@@ -199,7 +172,60 @@ class TestDataDict(unittest.TestCase):
         self.assertEqual(new_dict['dictionary'], expected_missing_fields)
 
 
-    # Add more test methods here for other functionalities if needed
+class TestHelpers(unittest.TestCase):
+    def setUp(self):
+        # Create a temporary directory to store the test files
+        self.temp_dir = tempfile.mkdtemp()
+        self.yaml_obj = ruamel.yaml.YAML()
+
+    def tearDown(self):
+        # Remove the temporary directory and its contents after the test
+        shutil.rmtree(self.temp_dir)
+
+    def test_open_model_yml_file(self):
+        # Test opening a valid model YAML file
+        model_yaml_file = os.path.join(self.temp_dir, 'model_file.yml')
+        model_yaml = {"models": [{"name": "test_model", "columns": [{'name': 'field1', 'description': 'old_desc'}]}]}
+        with open(model_yaml_file, 'w') as file:
+            self.yaml_obj.dump(model_yaml, file)
+        result = datadict_helpers.open_model_yml_file(self.yaml_obj, model_yaml_file)
+        self.assertTrue(result['status'] == 'valid')
+        self.assertIsInstance(result['yaml'], dict)
+
+        # Test opening an invalid model YAML file
+        invalid_model_yaml_file = os.path.join(self.temp_dir, 'invalid_model_file.yml')
+        with open(invalid_model_yaml_file, 'w') as file:
+            file.write("invalid_data:\n")
+        result = datadict_helpers.open_model_yml_file(self.yaml_obj, invalid_model_yaml_file)
+        self.assertTrue(result['status'] == 'invalid')
+        self.assertIsNone(result['yaml'])
+
+    def test_check_valid_model_file(self):
+        # Test checking a valid model YAML data
+        valid_model_yaml = {'models': [{'name': 'model1', 'columns': [{'name': 'column1', 'description': 'desc1'}]}]}
+        result = datadict_helpers.check_valid_model_file(valid_model_yaml)
+        self.assertTrue(result)
+
+        # Test checking an invalid model YAML data
+        invalid_model_yaml = {'invalid_data': 'data'}
+        result = datadict_helpers.check_valid_model_file(invalid_model_yaml)
+        self.assertFalse(result)
+
+    def test_output_model_file(self):
+        # Prepare test data
+        model_yaml = {"models": [{"name": "test_model", "description": "Test Model", "columns": [{"name": "col1", "description": "Column 1"}, {"name": "col2", "description": "Column 2"},]}]}
+        test_file_path = "test_output_model.yaml"
+        try:
+            datadict_helpers.output_model_file(self.yaml_obj, test_file_path, model_yaml)
+            self.assertTrue(os.path.exists(test_file_path))
+            with open(test_file_path, 'r') as f:
+                loaded_yaml = self.yaml_obj.load(f)
+            self.assertEqual(loaded_yaml, model_yaml)
+
+        finally:
+            if os.path.exists(test_file_path):
+                os.remove(test_file_path)
+
 
 if __name__ == '__main__':
     unittest.main()
