@@ -86,6 +86,7 @@ For `field_1` there were two different descriptions detected within the model fi
 
 ```yaml
 dictionary:
+
   - name: field_1
     description: 'field_1_new_description'
     description_versions:
@@ -94,10 +95,12 @@ dictionary:
     models:
       - model_1
       - model_2
+  
   - name: field_2
     description: ''
     models:
       - model_1
+
   - name: field_3
     description: 'field_3_description_1'
     models:
