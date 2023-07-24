@@ -300,25 +300,28 @@ class datadict:
         updated = False
         try:
             for model_number, model in enumerate(model_yaml['models']):
-                for col_num, model_column in enumerate(model['columns']):
-                    if self.dictionary_yml['dictionary'] is not None:
-                        for dict_num, dict_column in enumerate(self.dictionary_yml['dictionary']):
-                            if model_column['name'] == dict_column['name'] or model_column['name'] in dict_column['aliases']:
-                                if 'description' in model_yaml['models'][model_number]['columns'][col_num]:
-                                    if model_yaml['models'][model_number]['columns'][col_num]['description'] != dict_column['description'] and dict_column['description'] != '':
-                                        model_yaml['models'][model_number]['columns'][col_num]['description'] = dict_column['description']
+                if 'columns' in model:
+                    for col_num, model_column in enumerate(model['columns']):
+                        if self.dictionary_yml['dictionary'] is not None:
+                            for dict_num, dict_column in enumerate(self.dictionary_yml['dictionary']):
+                                if model_column['name'] == dict_column['name'] or model_column['name'] in dict_column['aliases']:
+                                    if 'description' in model_yaml['models'][model_number]['columns'][col_num]:
+                                        if model_yaml['models'][model_number]['columns'][col_num]['description'] != dict_column['description'] and dict_column['description'] != '':
+                                            model_yaml['models'][model_number]['columns'][col_num]['description'] = dict_column['description']
+                                            self._log(f"Field '{model_column['name']}' in file '{file_path}' has been updated.")
+                                            updated = True
+                                    elif dict_column['description'] != '':
+                                        model_yaml['models'][model_number]['columns'][col_num] = self._insert_dict_item(model_yaml['models'][model_number]['columns'][col_num], 'description', dict_column['description'], 1)
                                         self._log(f"Field '{model_column['name']}' in file '{file_path}' has been updated.")
                                         updated = True
-                                elif dict_column['description'] != '':
-                                    model_yaml['models'][model_number]['columns'][col_num] = self._insert_dict_item(model_yaml['models'][model_number]['columns'][col_num], 'description', dict_column['description'], 1)
-                                    self._log(f"Field '{model_column['name']}' in file '{file_path}' has been updated.")
-                                    updated = True
-                                if 'models' in dict_column:
-                                    if model['name'] not in self.dictionary_yml['dictionary'][dict_num]['models']:
-                                        self.dictionary_yml['dictionary'][dict_num]['models'].append(model['name'])
-                                else:
-                                    self.dictionary_yml['dictionary'][dict_num]['models'] = [model['name']]
-                    self._update_existing_field(model_column, model, file_path)
+                                    if 'models' in dict_column:
+                                        if model['name'] not in self.dictionary_yml['dictionary'][dict_num]['models']:
+                                            self.dictionary_yml['dictionary'][dict_num]['models'].append(model['name'])
+                                    else:
+                                        self.dictionary_yml['dictionary'][dict_num]['models'] = [model['name']]
+                        self._update_existing_field(model_column, model, file_path)
+                else:
+                    self._log(f"No columns found for model {model['name']} in '{file_path}'", level='warning')
             if updated:
                 return {"updated": True, "model_yaml": model_yaml}
         except Exception as error:
