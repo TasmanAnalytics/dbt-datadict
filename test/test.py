@@ -226,6 +226,15 @@ class TestHelpers(unittest.TestCase):
             if os.path.exists(test_file_path):
                 os.remove(test_file_path)
 
+class TestYaml(unittest.TestCase):
+    def setUp(self):
+        # Create a temporary directory to store the test files
+        self.temp_dir = tempfile.mkdtemp()
+        self.yaml_obj = ruamel.yaml.YAML()
+
+    def tearDown(self):
+        # Remove the temporary directory and its contents after the test
+        shutil.rmtree(self.temp_dir)
 
 if __name__ == '__main__':
     unittest.main()
