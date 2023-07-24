@@ -151,7 +151,7 @@ Pushing the distribution to the test server (changes require upversioning)
 
 Pulling the distribution for use in another project
 
-`pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadictionary==<version>`
+`pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadictionary==0.0.4`
 
 ## **Important Note**
 
