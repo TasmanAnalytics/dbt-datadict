@@ -11,9 +11,10 @@ def add_spaces_between_cols(file):
     Returns:
         None
     """
-    with open(file, 'r') as f:
-            yaml = str(f.read())
-    replaced = yaml.replace('  - name:', '\n  - name:')
+    with open(file, 'rt') as f:
+            yaml = f.read()
+    replaced = yaml.replace('dictionary:\n\n', 'dictionary:\n').replace('  - name:', '\n  - name:')
+    print(replaced)
     with open(file, 'w') as f:
         f.write(replaced)
 
