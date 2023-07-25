@@ -72,10 +72,12 @@ dictionary:
     models:
       - model_1
       - model_2
+
   - name: field_2
     description: ''
     models:
       - model_1
+
   - name: field_3
     description: 'field_3_description_1'
     models:
