@@ -1,21 +1,7 @@
-import subprocess
 import os
 import ruamel.yaml
-
-def parse_bash_outputs(input_string) -> str:
-    version_two_index = input_string.find('version: 2')
-    if version_two_index != -1:
-        return input_string[version_two_index:]
-    else:
-        return ''
-
-def get_model_yaml(model_names) -> str:
-    yaml = ruamel.yaml.YAML()
-    print(f'Generating base model for models {model_names}')
-    args = {"model_names": model_names}
-    bash_command = ["dbt", "run-operation", "generate_model_yaml", "--args", str(args)]
-    result = subprocess.run(bash_command, capture_output=True).stdout.decode('UTF-8')
-    return yaml.load(parse_bash_outputs(result))
+import logging
+from datadict import datadict_dbt
 
 def list_directory_yml_files(directory) -> dict:
     files_list = []
@@ -61,14 +47,6 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
 
     return combined_dict
 
-def main():
-    model_list = []
-    files = list_directory_yml_files('models/')
-    models = check_files_for_models(files)
-    for model in models:
-        model_list.append(model['name'])
-    model_yaml = get_model_yaml(model_list)
-    print(model_yaml)
-            
-                         
-main()
+def generate_model_yamls(directory, name):
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    datadict_dbt.validate_dbt()
