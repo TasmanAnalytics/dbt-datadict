@@ -226,6 +226,36 @@ class TestHelpers(unittest.TestCase):
             if os.path.exists(test_file_path):
                 os.remove(test_file_path)
 
+    def test_list_directory_files(self):
+            extensions = ['.yml', '.yaml']
+            yaml_files = [
+                'file1.yaml',
+                'file2.yml',
+                'subdir/file3.yaml',
+                'subdir/file4.yml',
+                'subdir/subsubdir/file5.yaml',
+                'subdir/subsubdir/file6.yml',
+                'non_yaml_file.txt'
+            ]
+            for file in yaml_files:
+                file_path = os.path.join(self.temp_dir, file)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'w') as f:
+                    f.write('Sample YAML content')
+            # Call the function to get the list of YAML files in the temporary directory
+            yaml_files_list = datadict_helpers.list_directory_files(self.temp_dir, extensions)
+
+            # Assert that the function returns the correct list of YAML files
+            expected_yaml_files = [
+                os.path.join(self.temp_dir, 'file1.yaml'),
+                os.path.join(self.temp_dir, 'file2.yml'),
+                os.path.join(self.temp_dir, 'subdir/file3.yaml'),
+                os.path.join(self.temp_dir, 'subdir/file4.yml'),
+                os.path.join(self.temp_dir, 'subdir/subsubdir/file5.yaml'),
+                os.path.join(self.temp_dir, 'subdir/subsubdir/file6.yml')
+            ]
+            self.assertCountEqual(yaml_files_list, expected_yaml_files)
+
 class TestYaml(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory to store the test files
@@ -235,6 +265,8 @@ class TestYaml(unittest.TestCase):
     def tearDown(self):
         # Remove the temporary directory and its contents after the test
         shutil.rmtree(self.temp_dir)
+    
+
 
 if __name__ == '__main__':
     unittest.main()
