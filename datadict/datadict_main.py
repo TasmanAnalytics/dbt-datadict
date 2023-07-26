@@ -17,5 +17,5 @@ def apply(dictionary, directory):
 @click.option('-D', '--directory', type=str, help='Directory to apply dictionary', default='models/')
 @click.option('-f', '--file', type=str, help='Name to give the generated YAML file', default='models.yml')
 @click.option('--sort/--no-sort', help='Triggers the generated YAML files to be sorted alphabetically', default=False)
-def generate(directory, name, sort):
-    datadict.generate_model_yamls(directory, name, sort)
+def generate(directory, file, sort):
+    datadict.generate_model_yamls(directory, file, sort)
