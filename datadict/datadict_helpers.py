@@ -108,10 +108,12 @@ def list_directory_files(directory, extensions) -> dict:
                     if file.endswith(tuple(extensions)):
                         files_list.append(os.path.join(root, file))
             logging.info(f"Found {len(files_list)} files in the directory '{directory}' with extensions: {', '.join(extensions)}")
+        else:
+            logging.error(f"Directory '{directory}' doesn't existing.")
         return files_list
+        
     except Exception as e:
         logging.error(f"Issues encountered when trying to search directory for yaml files: " + e)
-        SystemExit
 
 def sort_model_file(file_yaml) -> dict:
     """
