@@ -21,6 +21,7 @@ setup(
     install_requires = [requirements],
     python_requires='>=3.7',
     classifiers=[
+        "Development Status :: 3 - Alpha",  
         "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
     ],
