@@ -91,7 +91,7 @@ def get_model_yaml(model_names) -> str:
         To use this function, the dbt CLI must be installed and accessible in the environment where this function is run.
     """
     try:
-        logging.info(f'Generating base model for models {model_names}')
+        logging.info(f'Generating base model for models: {", ".join(model_names)}')
         args = {"model_names": model_names}
         bash_command = ["dbt", "run-operation", "generate_model_yaml", "--args", str(args)]
         result = subprocess.run(bash_command, capture_output=True).stdout.decode('UTF-8')
