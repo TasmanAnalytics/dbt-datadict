@@ -83,6 +83,10 @@ def add_missing_models(yaml_obj, path, models, sort):
 def generate_model_yamls(directory, name, sort=False):
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     yaml_obj = ruamel.yaml.YAML()
+    yaml_obj.preserve_quotes = True
+    yaml_obj.indent(mapping=2, sequence=4, offset=2)
+    yaml_obj.width = 200
+    
     #1. Validate dbt is configured and usable
     if not datadict_dbt.validate_dbt():
         return
