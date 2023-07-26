@@ -216,7 +216,7 @@ class TestHelpers(unittest.TestCase):
         model_yaml = {"models": [{"name": "test_model", "description": "Test Model", "columns": [{"name": "col1", "description": "Column 1"}, {"name": "col2", "description": "Column 2"},]}]}
         test_file_path = "test_output_model.yaml"
         try:
-            datadict_helpers.output_model_file(self.yaml_obj, test_file_path, model_yaml)
+            datadict_helpers.output_model_file(self.yaml_obj, test_file_path, model_yaml, False)
             self.assertTrue(os.path.exists(test_file_path))
             with open(test_file_path, 'r') as f:
                 loaded_yaml = self.yaml_obj.load(f)
