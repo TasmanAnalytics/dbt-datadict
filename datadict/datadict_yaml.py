@@ -81,6 +81,31 @@ def add_missing_models(yaml_obj, path, models, sort):
         datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
 
 def generate_model_yamls(directory, name, sort=False):
+    """
+    Generate model YAML files in a given directory.
+
+    This function generates model YAML files in a specified directory. Existing model YAML files are evaluated,
+    and the model metadata is combined and written back to the existing files. For models missing from existing files,
+    a new file is created and the metadata for the missing models is written to it.
+
+    Parameters:
+        directory (str): The directory where the model YAML files are located, and where new files will be created.
+
+        name (str): The base name of the new YAML file to be created for models missing from existing files.
+
+        sort (bool, optional): Whether to sort the models alphabetically by their name. Default is False.
+
+    Returns:
+        None
+
+    Raises:
+        Exception: If any error occurs during the generation of the YAML files, an error message is logged and the
+        exception is raised.
+
+    Note:
+        This function is part of a larger data dictionary process that requires a valid DBT (Data Build Tool)
+        configuration and a set of SQL and YAML files containing DBT models and their metadata.
+    """
     try:
         logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
         yaml_obj = ruamel.yaml.YAML()
