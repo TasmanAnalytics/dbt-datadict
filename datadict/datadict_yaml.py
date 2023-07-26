@@ -81,39 +81,44 @@ def add_missing_models(yaml_obj, path, models, sort):
         datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
 
 def generate_model_yamls(directory, name, sort=False):
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    yaml_obj = ruamel.yaml.YAML()
-    yaml_obj.preserve_quotes = True
-    yaml_obj.indent(mapping=2, sequence=4, offset=2)
-    yaml_obj.width = 200
-    
-    #1. Validate dbt is configured and usable
-    if not datadict_dbt.validate_dbt():
-        return
-    
-    #2. Evaluate the existing yaml files in the directory for model metadata
-    yaml_file_list = datadict_helpers.list_directory_files(directory, ['.yml', '.yaml'])
-    existing_files = check_files_for_models(yaml_obj, yaml_file_list)
-    existing_model_list = existing_files['model_list'] 
-    existing_file_yamls = existing_files['file_yamls']
+    try:
+        logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+        yaml_obj = ruamel.yaml.YAML()
+        yaml_obj.preserve_quotes = True
+        yaml_obj.indent(mapping=2, sequence=4, offset=2)
+        yaml_obj.width = 200
+        
+        #1. Validate dbt is configured and usable
+        if not datadict_dbt.validate_dbt():
+            return
+        
+        #2. Evaluate the existing yaml files in the directory for model metadata
+        yaml_file_list = datadict_helpers.list_directory_files(directory, ['.yml', '.yaml'])
+        if len(yaml_file_list) == 0:
+            SystemExit
+        existing_files = check_files_for_models(yaml_obj, yaml_file_list)
+        existing_model_list = existing_files['model_list'] 
+        existing_file_yamls = existing_files['file_yamls']
 
-    #3. Get the full column list for every model in the directory
-    model_file_list = datadict_helpers.list_directory_files(directory, ['.sql'])
-    model_names = [os.path.basename(file).split('.')[0] for file in model_file_list]
-    model_column_list = datadict_dbt.get_model_yaml(model_names)
+        #3. Get the full column list for every model in the directory
+        model_file_list = datadict_helpers.list_directory_files(directory, ['.sql'])
+        model_names = [os.path.basename(file).split('.')[0] for file in model_file_list]
+        model_column_list = datadict_dbt.get_model_yaml(model_names)
 
-    #4. Split out the models in existing files from models missing from existing files.
-    models_to_be_updated = []
-    models_to_be_added = []
+        #4. Split out the models in existing files from models missing from existing files.
+        models_to_be_updated = []
+        models_to_be_added = []
 
-    for model_num, model in enumerate(model_column_list['models']):
-        if any(existing_model['name'] == model['name'] for existing_model in existing_model_list):
-            models_to_be_updated.append(model_column_list['models'][model_num])
-        else:
-            models_to_be_added.append(model_column_list['models'][model_num])
-    
-    #5. For models in existing files, combine the column lists and write back to the existing file
-    updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, sort)
+        for model_num, model in enumerate(model_column_list['models']):
+            if any(existing_model['name'] == model['name'] for existing_model in existing_model_list):
+                models_to_be_updated.append(model_column_list['models'][model_num])
+            else:
+                models_to_be_added.append(model_column_list['models'][model_num])
+        
+        #5. For models in existing files, combine the column lists and write back to the existing file
+        updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, sort)
 
-    #6. For models missing from existing files, create a new file with the given name and output the metadata
-    add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added, sort)
+        #6. For models missing from existing files, create a new file with the given name and output the metadata
+        add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added, sort)
+    except Exception as e:
+        logging.error('There was an error generating the YAML files. Error: ' + e)
