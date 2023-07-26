@@ -1,10 +1,8 @@
 import os
 import ruamel.yaml
 import logging
-#from datadict import datadict_dbt
-#from datadict import datadict_helpers
-import datadict_dbt
-import datadict_helpers
+from datadict import datadict_dbt
+from datadict import datadict_helpers
 
 
 def check_files_for_models(yaml_obj, files) -> dict:
@@ -115,5 +113,3 @@ def generate_model_yamls(directory, name, sort=False):
 
     #6. For models missing from existing files, create a new file with the given name and output the metadata
     add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added, sort)
-
-generate_model_yamls('../models/', 'new.yml', True)
