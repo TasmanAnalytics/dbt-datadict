@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name = 'dbt-datadictionary',
-    version = '0.0.4',
+    version = '0.0.5',
     author = 'Tom Shelley',
     author_email = 'tom@tasman.ai',
     license = 'GNU GENERAL PUBLIC LICENSE',
