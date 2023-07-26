@@ -256,6 +256,69 @@ class TestHelpers(unittest.TestCase):
             ]
             self.assertCountEqual(yaml_files_list, expected_yaml_files)
 
+    def test_sort_model_file(self):
+        # Input dictionary with unsorted models and columns
+        input_dict = {
+            'version': 2,
+            'models': [
+                {
+                    'name': 'dmn_clients',
+                    'columns': [
+                        {'name': 'updated_at', 'description': ''},
+                        {'name': 'client_uuid', 'description': 'Unique identifier for the client', 'tests': ['unique', 'not_null']},
+                        {'name': 'name', 'description': 'Name of the client', 'tests': ['not_null']},
+                        {'name': 'code', 'description': 'Code used to uniquely identify the client', 'tests': ['not_null']},
+                        {'name': 'board_name', 'description': 'Name of the board in monday.com'},
+                        {'name': 'status', 'description': 'Status of the client', 'tests': ['not_null']}
+                    ]
+                },
+                {
+                    'name': 'dmn_stories',
+                    'columns': [
+                        {'name': 'valid_from', 'description': ''},
+                        {'name': 'story_id', 'description': ''},
+                        {'name': 'name', 'description': ''},
+                        {'name': 'client_uuid', 'description': ''},
+                        {'name': 'client_name', 'description': ''}
+                    ]
+                }
+            ]
+        }
+
+        # Expected output dictionary with sorted models and columns
+        expected_output = {
+            'version': 2,
+            'models': [
+                {
+                    'name': 'dmn_clients',
+                    'columns': [
+                        {'name': 'board_name', 'description': 'Name of the board in monday.com'},
+                        {'name': 'client_uuid', 'description': 'Unique identifier for the client', 'tests': ['unique', 'not_null']},
+                        {'name': 'code', 'description': 'Code used to uniquely identify the client', 'tests': ['not_null']},
+                        {'name': 'name', 'description': 'Name of the client', 'tests': ['not_null']},
+                        {'name': 'status', 'description': 'Status of the client', 'tests': ['not_null']},
+                        {'name': 'updated_at', 'description': ''}
+                    ]
+                },
+                {
+                    'name': 'dmn_stories',
+                    'columns': [
+                        {'name': 'client_name', 'description': ''},
+                        {'name': 'client_uuid', 'description': ''},
+                        {'name': 'name', 'description': ''},
+                        {'name': 'story_id', 'description': ''},
+                        {'name': 'valid_from', 'description': ''}
+                    ]
+                }
+            ]
+        }
+
+        # Call the function to sort the model file
+        sorted_output = datadict_helpers.sort_model_file(input_dict)
+
+        # Compare the actual output with the expected output
+        self.assertEqual(sorted_output, expected_output)
+
 class TestYaml(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory to store the test files
