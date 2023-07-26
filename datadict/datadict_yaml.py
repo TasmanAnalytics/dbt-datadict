@@ -2,51 +2,100 @@ import os
 import ruamel.yaml
 import logging
 from datadict import datadict_dbt
+from datadict import datadict_helpers
 
-def list_directory_yml_files(directory) -> dict:
-    files_list = []
-    if os.path.exists(directory) and os.path.isdir(directory):
-            for root, dirs, files in os.walk(directory):
-                for file in files:
-                    if file.endswith('.yaml') or file.endswith('.yml'):
-                        files_list.append(os.path.join(root, file))
-    return files_list
-
-def open_yaml_file(file_path) -> dict:
-    yaml = ruamel.yaml.YAML()
-    with open(file_path, 'r+') as file:
-            yaml_file = yaml.load(file)
-    if 'models' in yaml_file:
-        return yaml_file
-
-def check_files_for_models(files) -> dict:
-    model_list = []
-    for file_path in files:
-        yaml = open_yaml_file(file_path)
-        if yaml is not None:
-            for model in yaml['models']:
-                model_list.append({'name': model['name'], 'file': file_path})
-    return model_list
+def check_files_for_models(yaml_obj, files) -> dict:
+    try:
+        file_yamls = []
+        model_list = []
+        for file_path in files:
+            file_contents = datadict_helpers.open_model_yml_file(yaml_obj, file_path)
+            if file_contents['status'] == 'valid':
+                file_yamls.append({'file_path': file_path, 'file_yaml': file_contents['yaml']})
+                for model in file_contents['yaml']['models']:
+                    model_list.append({'name': model['name'], 'file': file_path})
+        return {'model_list': model_list, 'file_yamls': file_yamls}
+    except Exception as e:
+        logging.error('Issues encountered when iterating through files to collect models: ' + e)
 
 def combine_column_lists(current_yml, expected_yml) -> dict:
-    combined_dict = current_yml.copy()
-    # Iterate through the columns of dict2 and add the missing ones to combined_dict
+    updated = False
+    combined_yaml = current_yml.copy()
+    # Iterate through the columns of expected_yml and add the missing ones to current_yml
     for column in expected_yml.get('columns', []):
         name = column.get('name')
         if name is not None:
-            # Check if the name is already present in combined_dict
+            # Check if the name is already present in current_yml
             found = False
-            for existing_column in combined_dict.get('columns', []):
+            for existing_column in combined_yaml.get('columns', []):
                 if existing_column.get('name') == name:
                     found = True
                     break
 
-            # If the name is not already present, add the column to combined_dict
+            # If the name is not already present, add the column to current_yml
             if not found:
-                combined_dict.setdefault('columns', []).append(column)
+                combined_yaml.setdefault('columns', []).append(column)
+                updated = True
+                logging.info(f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'")
 
-    return combined_dict
+    return {'yaml': combined_yaml, 'updated': updated}
+
+def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated):
+    #loop through each existing file
+    updated = False
+    for file in existing_file_yamls:
+        file_yaml = file['file_yaml']
+        path = file['file_path']
+        for model_num, model in enumerate(file_yaml['models']):
+            for model_to_be_updated in models_to_be_updated:
+                if model_to_be_updated['name'] == model['name']:
+                    logging.info(f"Model {model['name']} is being checked...")
+                    combined_columns = combine_column_lists(model, model_to_be_updated)
+                    file_yaml['models'][model_num] = combined_columns['yaml']
+                    updated = combined_columns['updated']
+                    if not updated:
+                        logging.info(f"Model {model['name']} is correct")
+
+        if updated:
+            datadict_helpers.output_model_file(yaml_obj, path, datadict_helpers.sort_model_file(file_yaml))
+
+def construct_yaml_file(models):
+    return {'version': 2, 'models': models}
+
+def add_missing_models(yaml_obj, path, models):
+    file_yaml = construct_yaml_file(models)
+    datadict_helpers.output_model_file(yaml_obj, path, file_yaml)
 
 def generate_model_yamls(directory, name):
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    datadict_dbt.validate_dbt()
+    yaml_obj = ruamel.yaml.YAML()
+    #1. Validate dbt is configured and usable
+    if not datadict_dbt.validate_dbt():
+        return
+    
+    #2. Evaluate the existing yaml files in the directory for model metadata
+    yaml_file_list = datadict_helpers.list_directory_files(directory, ['.yml', '.yaml'])
+    existing_files = check_files_for_models(yaml_obj, yaml_file_list)
+    existing_model_list = existing_files['model_list'] 
+    existing_file_yamls = existing_files['file_yamls']
+
+    #3. Get the full column list for every model in the directory
+    model_file_list = datadict_helpers.list_directory_files(directory, ['.sql'])
+    model_names = [os.path.basename(file).split('.')[0] for file in model_file_list]
+    model_column_list = datadict_dbt.get_model_yaml(model_names)
+
+    #4. Split out the models in existing files from models missing from existing files.
+    models_to_be_updated = []
+    models_to_be_added = []
+
+    for model_num, model in enumerate(model_column_list['models']):
+        if any(existing_model['name'] == model['name'] for existing_model in existing_model_list):
+            models_to_be_updated.append(model_column_list['models'][model_num])
+        else:
+            models_to_be_added.append(model_column_list['models'][model_num])
+    
+    #5. For models in existing files, combine the column lists and write back to the existing file
+    updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated)
+
+    #6. For models missing from existing files, create a new file with the given name and output the metadata
+    add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added)
