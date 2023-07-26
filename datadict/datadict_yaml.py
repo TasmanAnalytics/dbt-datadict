@@ -1,8 +1,11 @@
 import os
 import ruamel.yaml
 import logging
-from datadict import datadict_dbt
-from datadict import datadict_helpers
+#from datadict import datadict_dbt
+#from datadict import datadict_helpers
+import datadict_dbt
+import datadict_helpers
+
 
 def check_files_for_models(yaml_obj, files) -> dict:
     try:
@@ -36,13 +39,13 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
             if not found:
                 combined_yaml.setdefault('columns', []).append(column)
                 updated = True
-                logging.info(f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'")
+                logging.warning(f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'")
 
     return {'yaml': combined_yaml, 'updated': updated}
 
-def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated):
+def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, sort):
     #loop through each existing file
-    updated = False
+    updated_count = 0
     for file in existing_file_yamls:
         file_yaml = file['file_yaml']
         path = file['file_path']
@@ -53,20 +56,33 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated):
                     combined_columns = combine_column_lists(model, model_to_be_updated)
                     file_yaml['models'][model_num] = combined_columns['yaml']
                     updated = combined_columns['updated']
-                    if not updated:
+                    if updated:
+                        updated_count += 1
+                    else:
                         logging.info(f"Model {model['name']} is correct")
 
-        if updated:
-            datadict_helpers.output_model_file(yaml_obj, path, datadict_helpers.sort_model_file(file_yaml))
+        if updated_count > 0:
+            datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
 
-def construct_yaml_file(models):
-    return {'version': 2, 'models': models}
+def add_missing_models(yaml_obj, path, models, sort):
+    if os.path.isfile(path) and os.path.exists(path):
+        yaml = datadict_helpers.open_model_yml_file(yaml_obj, path)
+        if yaml['status'] == 'valid':
+            logging.info(f"File '{path}' has been found and is a valid models file")
+            updated = yaml['yaml']
+            if len(models) > 0:
+                updated['models'].append(models)
+                datadict_helpers.output_model_file(yaml_obj, path, updated, sort)
+            else:
+                logging.info(f"No updates to apply to '{path}'")
+        else:
+            logging.error(f"File '{path}' has been found and but isn't a valid model file")
+    else:
+        logging.info(f"File '{path}' doesn't exist and will be created.")
+        file_yaml = {'version': 2, 'models': models}
+        datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
 
-def add_missing_models(yaml_obj, path, models):
-    file_yaml = construct_yaml_file(models)
-    datadict_helpers.output_model_file(yaml_obj, path, file_yaml)
-
-def generate_model_yamls(directory, name):
+def generate_model_yamls(directory, name, sort=False):
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     yaml_obj = ruamel.yaml.YAML()
     #1. Validate dbt is configured and usable
@@ -95,7 +111,9 @@ def generate_model_yamls(directory, name):
             models_to_be_added.append(model_column_list['models'][model_num])
     
     #5. For models in existing files, combine the column lists and write back to the existing file
-    updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated)
+    updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, sort)
 
     #6. For models missing from existing files, create a new file with the given name and output the metadata
-    add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added)
+    add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added, sort)
+
+generate_model_yamls('../models/', 'new.yml', True)

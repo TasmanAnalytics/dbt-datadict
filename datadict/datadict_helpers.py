@@ -62,7 +62,7 @@ def check_valid_model_file(model_yaml) -> bool:
     except:
         return False
     
-def output_model_file(yaml_obj, file_path, model_yaml) -> None:
+def output_model_file(yaml_obj, file_path, model_yaml, sort) -> None:
     """
     Output the updated model YAML data to a file.
 
@@ -76,9 +76,14 @@ def output_model_file(yaml_obj, file_path, model_yaml) -> None:
     Returns:
         None
     """
+    if sort:
+        output_yaml = sort_model_file(model_yaml)
+        logging.info(f"File '{file_path}' has been sorted")
+    else:
+        output_yaml = model_yaml
     with open(file_path, 'w') as file:
-        yaml_obj.dump(model_yaml, file)
-        logging.info(f'Updated model file {file_path}')
+        yaml_obj.dump(output_yaml, file)
+        logging.info(f"Updated model file '{file_path}'")
 
 
 def list_directory_files(directory, extensions) -> dict:
