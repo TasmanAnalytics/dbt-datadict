@@ -69,7 +69,7 @@ def add_missing_models(yaml_obj, path, models, sort):
             logging.info(f"File '{path}' has been found and is a valid models file")
             updated = yaml['yaml']
             if len(models) > 0:
-                updated['models'].append(models)
+                updated['models'] = updated['models'] + models
                 datadict_helpers.output_model_file(yaml_obj, path, updated, sort)
             else:
                 logging.info(f"No updates to apply to '{path}'")
