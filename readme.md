@@ -146,7 +146,7 @@ $ dbt_datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 ### **Options:**
 
 - `--D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
-- `-n, --name <NAME>`: The name to give to the generated yaml file.
+- `-f, --file <NAME>`: The file to store any new models in.
 - `--sort`: Triggers the generated YAML files to be sorted alphabetically.
 
 ## Developing Locally and distributing
