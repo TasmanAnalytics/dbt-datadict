@@ -216,7 +216,7 @@ class TestHelpers(unittest.TestCase):
         model_yaml = {"models": [{"name": "test_model", "description": "Test Model", "columns": [{"name": "col1", "description": "Column 1"}, {"name": "col2", "description": "Column 2"},]}]}
         test_file_path = "test_output_model.yaml"
         try:
-            datadict_helpers.output_model_file(self.yaml_obj, test_file_path, model_yaml)
+            datadict_helpers.output_model_file(self.yaml_obj, test_file_path, model_yaml, False)
             self.assertTrue(os.path.exists(test_file_path))
             with open(test_file_path, 'r') as f:
                 loaded_yaml = self.yaml_obj.load(f)
@@ -225,6 +225,110 @@ class TestHelpers(unittest.TestCase):
         finally:
             if os.path.exists(test_file_path):
                 os.remove(test_file_path)
+
+    def test_list_directory_files(self):
+            extensions = ['.yml', '.yaml']
+            yaml_files = [
+                'file1.yaml',
+                'file2.yml',
+                'subdir/file3.yaml',
+                'subdir/file4.yml',
+                'subdir/subsubdir/file5.yaml',
+                'subdir/subsubdir/file6.yml',
+                'non_yaml_file.txt'
+            ]
+            for file in yaml_files:
+                file_path = os.path.join(self.temp_dir, file)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'w') as f:
+                    f.write('Sample YAML content')
+            # Call the function to get the list of YAML files in the temporary directory
+            yaml_files_list = datadict_helpers.list_directory_files(self.temp_dir, extensions)
+
+            # Assert that the function returns the correct list of YAML files
+            expected_yaml_files = [
+                os.path.join(self.temp_dir, 'file1.yaml'),
+                os.path.join(self.temp_dir, 'file2.yml'),
+                os.path.join(self.temp_dir, 'subdir/file3.yaml'),
+                os.path.join(self.temp_dir, 'subdir/file4.yml'),
+                os.path.join(self.temp_dir, 'subdir/subsubdir/file5.yaml'),
+                os.path.join(self.temp_dir, 'subdir/subsubdir/file6.yml')
+            ]
+            self.assertCountEqual(yaml_files_list, expected_yaml_files)
+
+    def test_sort_model_file(self):
+        # Input dictionary with unsorted models and columns
+        input_dict = {
+            'version': 2,
+            'models': [
+                {
+                    'name': 'dmn_clients',
+                    'columns': [
+                        {'name': 'updated_at', 'description': ''},
+                        {'name': 'client_uuid', 'description': 'Unique identifier for the client', 'tests': ['unique', 'not_null']},
+                        {'name': 'name', 'description': 'Name of the client', 'tests': ['not_null']},
+                        {'name': 'code', 'description': 'Code used to uniquely identify the client', 'tests': ['not_null']},
+                        {'name': 'board_name', 'description': 'Name of the board in monday.com'},
+                        {'name': 'status', 'description': 'Status of the client', 'tests': ['not_null']}
+                    ]
+                },
+                {
+                    'name': 'dmn_stories',
+                    'columns': [
+                        {'name': 'valid_from', 'description': ''},
+                        {'name': 'story_id', 'description': ''},
+                        {'name': 'name', 'description': ''},
+                        {'name': 'client_uuid', 'description': ''},
+                        {'name': 'client_name', 'description': ''}
+                    ]
+                }
+            ]
+        }
+
+        # Expected output dictionary with sorted models and columns
+        expected_output = {
+            'version': 2,
+            'models': [
+                {
+                    'name': 'dmn_clients',
+                    'columns': [
+                        {'name': 'board_name', 'description': 'Name of the board in monday.com'},
+                        {'name': 'client_uuid', 'description': 'Unique identifier for the client', 'tests': ['unique', 'not_null']},
+                        {'name': 'code', 'description': 'Code used to uniquely identify the client', 'tests': ['not_null']},
+                        {'name': 'name', 'description': 'Name of the client', 'tests': ['not_null']},
+                        {'name': 'status', 'description': 'Status of the client', 'tests': ['not_null']},
+                        {'name': 'updated_at', 'description': ''}
+                    ]
+                },
+                {
+                    'name': 'dmn_stories',
+                    'columns': [
+                        {'name': 'client_name', 'description': ''},
+                        {'name': 'client_uuid', 'description': ''},
+                        {'name': 'name', 'description': ''},
+                        {'name': 'story_id', 'description': ''},
+                        {'name': 'valid_from', 'description': ''}
+                    ]
+                }
+            ]
+        }
+
+        # Call the function to sort the model file
+        sorted_output = datadict_helpers.sort_model_file(input_dict)
+
+        # Compare the actual output with the expected output
+        self.assertEqual(sorted_output, expected_output)
+
+class TestYaml(unittest.TestCase):
+    def setUp(self):
+        # Create a temporary directory to store the test files
+        self.temp_dir = tempfile.mkdtemp()
+        self.yaml_obj = ruamel.yaml.YAML()
+
+    def tearDown(self):
+        # Remove the temporary directory and its contents after the test
+        shutil.rmtree(self.temp_dir)
+    
 
 
 if __name__ == '__main__':

@@ -1,3 +1,6 @@
+import os
+import logging
+
 def add_spaces_between_cols(file):
     """
     Add spaces between columns in a YAML file.
@@ -14,7 +17,6 @@ def add_spaces_between_cols(file):
     with open(file, 'rt') as f:
             yaml = f.read()
     replaced = yaml.replace('dictionary:\n\n', 'dictionary:\n').replace('  - name:', '\n  - name:')
-    print(replaced)
     with open(file, 'w') as f:
         f.write(replaced)
 
@@ -60,7 +62,7 @@ def check_valid_model_file(model_yaml) -> bool:
     except:
         return False
     
-def output_model_file(yaml_obj, file_path, model_yaml) -> None:
+def output_model_file(yaml_obj, file_path, model_yaml, sort) -> None:
     """
     Output the updated model YAML data to a file.
 
@@ -74,5 +76,66 @@ def output_model_file(yaml_obj, file_path, model_yaml) -> None:
     Returns:
         None
     """
+    if sort:
+        output_yaml = sort_model_file(model_yaml)
+        logging.info(f"File '{file_path}' has been sorted")
+    else:
+        output_yaml = model_yaml
     with open(file_path, 'w') as file:
-        yaml_obj.dump(model_yaml, file)
+        yaml_obj.dump(output_yaml, file)
+        logging.info(f"Updated model file '{file_path}'")
+
+
+def list_directory_files(directory, extensions) -> dict:
+    """
+    Lists all files with the provided extensions in the specified directory and its subdirectories.
+
+    This function recursively searches the provided 'directory' for files found with the supplied extensions.
+    It returns a list containing the absolute file paths of all the found files.
+
+    Parameters:
+        directory (str): The path to the directory to search for files.
+        extensions (list): A list of extensions to check for.
+
+    Returns:
+        list: A list containing absolute file paths of YAML files in the specified directory and its subdirectories.
+    """
+    try:
+        files_list = []
+        if os.path.exists(directory) and os.path.isdir(directory):
+            for root, dirs, files in os.walk(directory):
+                for file in files:
+                    if file.endswith(tuple(extensions)):
+                        files_list.append(os.path.join(root, file))
+            logging.info(f"Found {len(files_list)} files in the directory '{directory}' with extensions: {', '.join(extensions)}")
+        else:
+            logging.error(f"Directory '{directory}' doesn't existing.")
+        return files_list
+        
+    except Exception as e:
+        logging.error(f"Issues encountered when trying to search directory for yaml files: " + e)
+
+def sort_model_file(file_yaml) -> dict:
+    """
+    Sorts the dictionary of models by the column names within each model alphabetically.
+
+    This function takes a dictionary containing model information, where each model has a list of columns.
+    The function sorts the columns within each model alphabetically based on their 'name' key.
+    Additionally, the function sorts the models themselves alphabetically based on their 'name' key.
+
+    Parameters:
+        file_yaml (dict): The dictionary containing model information.
+
+    Returns:
+        dict: The sorted dictionary with models and their columns sorted alphabetically by their names.
+    """
+
+    # Sort the columns within each model alphabetically
+    for model in file_yaml['models']:
+        if 'columns' in model:
+            model['columns'] = sorted(model['columns'], key=lambda col: col['name'])
+
+    # Sort the models by name
+    file_yaml['models'] = sorted(file_yaml['models'], key=lambda model: model['name'])
+
+    return file_yaml

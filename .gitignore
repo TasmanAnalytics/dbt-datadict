@@ -5,3 +5,4 @@ build/
 dist/
 datadictionary.yml
 models/
+logs/

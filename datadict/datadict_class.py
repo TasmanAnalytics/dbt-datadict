@@ -418,15 +418,15 @@ class datadict:
             try:
                 updates = self._iterate_dictionary_update(model_yaml['yaml'], file_path)
                 if updates['updated']:
-                    datadict_helpers.output_model_file(self.yaml, file_path, updates['model_yaml'])
+                    datadict_helpers.output_model_file(self.yaml, file_path, updates['model_yaml'], False)
                     self._log(f'File {file_path} has been updated')
                 else:
                     self._log(f"No updates found for file '{file_path}'")
             
             except FileNotFoundError:
                 self._log(f"File '{file_path}' not found.", level='error')
-            except:
-                self._log(f"Error processing file '{file_path}'", level='error')
+            except Exception as e:
+                self._log(f"Error processing file '{file_path}'. Error: " + e, level='error')
         else:
             self._log(f"File '{file_path}' contains no models and has been skipped.")
 
