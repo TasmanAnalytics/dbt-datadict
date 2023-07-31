@@ -12,12 +12,15 @@ def check_files_for_models(yaml_obj, files) -> dict:
         for file_path in files:
             file_contents = datadict_helpers.open_model_yml_file(yaml_obj, file_path)
             if file_contents['status'] == 'valid':
-                file_yamls.append({'file_path': file_path, 'file_yaml': file_contents['yaml']})
-                for model in file_contents['yaml']['models']:
-                    model_list.append({'name': model['name'], 'file': file_path})
+                try:
+                    for model in file_contents['yaml']['models']:
+                        model_list.append({'name': model['name'], 'file': file_path})
+                    file_yamls.append({'file_path': file_path, 'file_yaml': file_contents['yaml']})
+                except:
+                    logging.error(f"There was an issue processing file '{file_path}'. Ensure it is formatted correctly and retry.")
         return {'model_list': model_list, 'file_yamls': file_yamls}
     except Exception as e:
-        logging.error('Issues encountered when iterating through files to collect models: ' + e)
+        logging.error('Issues encountered when iterating through files to collect models. Error: ' + str(e))
 
 def combine_column_lists(current_yml, expected_yml) -> dict:
     updated = False
@@ -164,9 +167,19 @@ def generate_model_yamls(directory, name, sort=True):
                 models_to_be_added.append(model_column_list['models'][model_num])
         
         #5. For models in existing files, combine the column lists and write back to the existing file
-        updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, sort)
+        if len(models_to_be_updated) > 0:
+            logging.info(f"There are {len(models_to_be_updated)} models to be checked")
+            updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, sort)
+        else:
+            logging.info('There are no models requiring updating.')
 
         #6. For models missing from existing files, create a new file with the given name and output the metadata
-        add_missing_models(yaml_obj, os.path.join(directory, name), models_to_be_added, sort)
+        if len(models_to_be_added) > 0:
+            file_name = os.path.join(directory, name)
+            logging.info(f"There are {len(models_to_be_added)} models to be added to file '{file_name}'")
+            add_missing_models(yaml_obj, file_name, models_to_be_added, sort)
+        else:
+            logging.info('There are no models to be added.')
+
     except Exception as e:
-        logging.error('There was an error generating the YAML files. Error: ' + e)
+        logging.error('There was an error generating the YAML files. Error: ' + str(e))
