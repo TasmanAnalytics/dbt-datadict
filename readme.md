@@ -19,6 +19,31 @@ The dbt Data Dictionary is a command-line tool that provides helpful tools to im
 ### **Command-Line Interface (CLI) Usage**
 
 The Data Dictionary Application provides a command-line interface (CLI) that allows you to interact with the library easily.
+### Command: `generate`
+
+This command generates yaml files using the dbt-codegen package. Where it finds existing model yaml files, it will merge the full column lists. For missing models, it will create a separate model yaml file using the name provided.
+
+**IMPORTANT**: This command will only run in a valid dbt project with dbt-labs/codegen installed.
+
+### **Usage:**
+
+```bash
+$ dbt_datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
+```
+
+### **Options:**
+
+- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
+- `-f, --file <NAME>`: The file to store any new models in.
+- `--sort`: Triggers the generated YAML files to be sorted alphabetically.
+
+### **Generation Process**
+1. dbt installation is validated by running `dbt debug` and `dbt deps`
+2. The supplied directory is searched recursively for YAML model files.
+3. The supplied directory is serach for model files (ending with .sql)
+4. dbt-labs/codegen is used to obtain the full column lists for each of the models.
+5. Models in existing YAML model files are synchronised with the expected column list.
+6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`
 
 ### Command: **`apply`**
 
@@ -35,7 +60,8 @@ $ dbt_datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
 - **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
 - **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
 
-## Data Dictionary Output
+
+## Examples
 
 Given the following model yaml file example:
 
@@ -132,32 +158,6 @@ models:
       - name: field_3
         description: 'field_3_description_1'
 ```
-
-### Command: `generate`
-
-This command generates yaml files using the dbt-codegen package. Where it finds existing model yaml files, it will merge the full column lists. For missing models, it will create a separate model yaml file using the name provided.
-
-**IMPORTANT**: This command will only run in a valid dbt project with dbt-labs/codegen installed.
-
-### **Usage:**
-
-```bash
-$ dbt_datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
-```
-
-### **Options:**
-
-- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
-- `-f, --file <NAME>`: The file to store any new models in.
-- `--sort`: Triggers the generated YAML files to be sorted alphabetically.
-
-### **Generation Process**
-1. dbt installation is validated by running `dbt debug` and `dbt deps`
-2. The supplied directory is searched recursively for YAML model files.
-3. The supplied directory is serach for model files (ending with .sql)
-4. dbt-labs/codegen is used to obtain the full column lists for each of the models.
-5. Models in existing YAML model files are updated with any missing columns.
-6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`
 
 ## Developing Locally and distributing
 
