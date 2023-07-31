@@ -28,7 +28,7 @@ This command generates yaml files using the dbt-codegen package. Where it finds 
 ### **Usage:**
 
 ```bash
-$ dbt_datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
+$ datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 ```
 
 ### **Options:**
@@ -52,7 +52,7 @@ This command applies data dictionary updates to all model YAML files in the spec
 ### **Usage:**
 
 ```bash
-$ dbt_datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
+$ datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
 ```
 
 ### **Options:**
