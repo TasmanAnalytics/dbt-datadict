@@ -48,7 +48,7 @@ def validate_dbt() -> bool:
         bash_command = ["dbt", "debug"]
         result = subprocess.run(bash_command, capture_output=True).stdout.decode('UTF-8')
         if 'All checks passed!' not in result:
-            logging.error("Issues encountered when running `dbt debug`: " + result)
+            logging.error("Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying.")
             return False
         
         #Check codegen installed
