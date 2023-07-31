@@ -32,8 +32,8 @@ $ dbt_datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
 
 ### **Options:**
 
-- **`d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
-- **`D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
+- **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
+- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
 
 ## Data Dictionary Output
 
@@ -147,7 +147,7 @@ $ dbt_datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 
 ### **Options:**
 
-- `--D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
+- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
 - `-f, --file <NAME>`: The file to store any new models in.
 - `--sort`: Triggers the generated YAML files to be sorted alphabetically.
 
