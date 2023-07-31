@@ -7,8 +7,8 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = fh.read()
 
 setup(
-    name = 'dbt-datadictionary',
-    version = '0.0.12',
+    name = 'dbt-datadict',
+    version = '0.0.1',
     author = 'Tom Shelley',
     author_email = 'tom@tasman.ai',
     license = 'GNU GENERAL PUBLIC LICENSE',
@@ -16,7 +16,7 @@ setup(
     long_description = long_description,
     long_description_content_type = "text/markdown",
     url = 'https://github.com/TasmanAnalytics/dbt-datadictionary',
-    py_modules = ['dbt_datadictionary', 'app'],
+    py_modules = ['dbt-datadict', 'app'],
     packages = find_packages(),
     install_requires = [requirements],
     python_requires='>=3.7',
