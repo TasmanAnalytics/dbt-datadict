@@ -103,7 +103,7 @@ def add_missing_models(yaml_obj, path, models, sort):
         file_yaml = {'version': 2, 'models': models}
         datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
 
-def generate_model_yamls(directory, name, sort=False):
+def generate_model_yamls(directory, name, sort=True):
     """
     Generate model YAML files in a given directory.
 
