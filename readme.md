@@ -177,9 +177,17 @@ Building for distribution
 
 `python setup.py sdist bdist_wheel`
 
-Pushing the distribution to PyPi (changes require upversioning and access)
+Pushing the distribution to Test PyPi (changes require upversioning and access)
+
+`twine upload --repository testpypi --skip-existing dist/*`
+
+Pushing the distribution to Production PyPi (changes require upversioning and access)
 
 `twine upload --repository pypi --skip-existing dist/*`
+
+Pulling a test distribution
+
+`pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadictionary==<version>`
 
 ## **Important Note**
 
