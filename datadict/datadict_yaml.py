@@ -22,6 +22,7 @@ def check_files_for_models(yaml_obj, files) -> dict:
 def combine_column_lists(current_yml, expected_yml) -> dict:
     updated = False
     combined_yaml = current_yml.copy()
+    existing_columns = combined_yaml.setdefault('columns', [])
     # Iterate through the columns of expected_yml and add the missing ones to current_yml
     for column in expected_yml.get('columns', []):
         name = column.get('name')
@@ -38,6 +39,25 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
                 combined_yaml.setdefault('columns', []).append(column)
                 updated = True
                 logging.warning(f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'")
+    
+        # Iterate through the existing columns and remove any that are not in the expected_yml
+    columns_to_remove = []
+    for existing_column in existing_columns:
+        name = existing_column.get('name')
+        if name is not None:
+            found = False
+            for column in expected_yml.get('columns', []):
+                if column.get('name') == name:
+                    found = True
+                    break
+            if not found:
+                columns_to_remove.append(existing_column)
+
+    if columns_to_remove:
+        for column in columns_to_remove:
+            existing_columns.remove(column)
+            updated = True
+            logging.warning(f"Column '{column['name']}' removed from model '{current_yml['name']}'")
 
     return {'yaml': combined_yaml, 'updated': updated}
 
