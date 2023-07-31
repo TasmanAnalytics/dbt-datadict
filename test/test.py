@@ -5,6 +5,7 @@ import datadict
 import shutil
 import ruamel.yaml
 from datadict import datadict_helpers
+from datadict import datadict_yaml
 
 class TestDataDict(unittest.TestCase):
 
@@ -330,6 +331,73 @@ class TestYaml(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
     
 
+    def test_combine_column_lists_no_missing_columns(self):
+        # Test when there are no missing columns
+        current_yml = {
+            'name': 'Model1',
+            'columns': [
+                {'name': 'Column1', 'type': 'int'},
+                {'name': 'Column2', 'type': 'str'},
+            ]
+        }
+        expected_yml = {
+            'columns': [
+                {'name': 'Column1', 'type': 'int'},
+                {'name': 'Column2', 'type': 'str'},
+            ]
+        }
+        result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+        self.assertEqual(result['updated'], False)
+        self.assertDictEqual(result['yaml'], current_yml)
+
+    def test_combine_column_lists_missing_columns(self):
+        # Test when there are missing columns
+        current_yml = {
+            'name': 'Model1',
+            'columns': [
+                {'name': 'Column1', 'type': 'int'},
+            ]
+        }
+        expected_yml = {
+            'columns': [
+                {'name': 'Column1', 'type': 'int'},
+                {'name': 'Column2', 'type': 'str'},
+            ]
+        }
+        result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+        self.assertEqual(result['updated'], True)
+        self.assertIn({'name': 'Column2', 'type': 'str'}, result['yaml']['columns'])
+
+    def test_combine_column_lists_additional_columns(self):
+        # Test when there are additional columns
+        current_yml = {
+            'name': 'Model1',
+            'columns': [
+                {'name': 'Column1', 'type': 'int'},
+                {'name': 'Column2', 'type': 'str'},
+            ]
+        }
+        expected_yml = {
+            'name': 'Model1',
+            'columns': [
+                {'name': 'Column1', 'type': 'int'}
+            ]
+        }
+        result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+        self.assertEqual(result['updated'], True)
+        self.assertDictEqual(result['yaml'], expected_yml)
+
+    def test_combine_column_lists_empty_current_yml(self):
+        # Test when current_yml has no columns initially
+        current_yml = {'name': 'Model1'}
+        expected_yml = {
+            'columns': [
+                {'name': 'Column1', 'type': 'int'},
+            ]
+        }
+        result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+        self.assertEqual(result['updated'], True)
+        self.assertIn({'name': 'Column1', 'type': 'int'}, result['yaml']['columns'])
 
 if __name__ == '__main__':
     unittest.main()

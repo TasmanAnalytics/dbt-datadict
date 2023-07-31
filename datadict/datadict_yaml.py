@@ -22,6 +22,7 @@ def check_files_for_models(yaml_obj, files) -> dict:
 def combine_column_lists(current_yml, expected_yml) -> dict:
     updated = False
     combined_yaml = current_yml.copy()
+    existing_columns = combined_yaml.setdefault('columns', [])
     # Iterate through the columns of expected_yml and add the missing ones to current_yml
     for column in expected_yml.get('columns', []):
         name = column.get('name')
@@ -38,6 +39,25 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
                 combined_yaml.setdefault('columns', []).append(column)
                 updated = True
                 logging.warning(f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'")
+    
+        # Iterate through the existing columns and remove any that are not in the expected_yml
+    columns_to_remove = []
+    for existing_column in existing_columns:
+        name = existing_column.get('name')
+        if name is not None:
+            found = False
+            for column in expected_yml.get('columns', []):
+                if column.get('name') == name:
+                    found = True
+                    break
+            if not found:
+                columns_to_remove.append(existing_column)
+
+    if columns_to_remove:
+        for column in columns_to_remove:
+            existing_columns.remove(column)
+            updated = True
+            logging.warning(f"Column '{column['name']}' removed from model '{current_yml['name']}'")
 
     return {'yaml': combined_yaml, 'updated': updated}
 
@@ -47,20 +67,23 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, 
     for file in existing_file_yamls:
         file_yaml = file['file_yaml']
         path = file['file_path']
-        for model_num, model in enumerate(file_yaml['models']):
-            for model_to_be_updated in models_to_be_updated:
-                if model_to_be_updated['name'] == model['name']:
-                    logging.info(f"Model {model['name']} is being checked...")
-                    combined_columns = combine_column_lists(model, model_to_be_updated)
-                    file_yaml['models'][model_num] = combined_columns['yaml']
-                    updated = combined_columns['updated']
-                    if updated:
-                        updated_count += 1
-                    else:
-                        logging.info(f"Model {model['name']} is correct")
+        try:
+            for model_num, model in enumerate(file_yaml['models']):
+                for model_to_be_updated in models_to_be_updated:
+                    if model_to_be_updated['name'] == model['name']:
+                        logging.info(f"Model {model['name']} is being checked...")
+                        combined_columns = combine_column_lists(model, model_to_be_updated)
+                        file_yaml['models'][model_num] = combined_columns['yaml']
+                        updated = combined_columns['updated']
+                        if updated:
+                            updated_count += 1
+                        else:
+                            logging.info(f"Model {model['name']} is correct")
 
-        if updated_count > 0:
-            datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
+            if updated_count > 0:
+                datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
+        except Exception as e:
+            logging.error(f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file.")
 
 def add_missing_models(yaml_obj, path, models, sort):
     if os.path.isfile(path) and os.path.exists(path):
@@ -80,7 +103,7 @@ def add_missing_models(yaml_obj, path, models, sort):
         file_yaml = {'version': 2, 'models': models}
         datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
 
-def generate_model_yamls(directory, name, sort=False):
+def generate_model_yamls(directory, name, sort=True):
     """
     Generate model YAML files in a given directory.
 
