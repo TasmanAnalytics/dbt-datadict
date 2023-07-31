@@ -12,7 +12,7 @@ The dbt Data Dictionary is a command-line tool that provides helpful tools to im
 1. Install dbt data dictionary using
     
     ```bash
-    pip install dbt_datadict
+    pip install dbt-datadictionary
     ```
     
 
@@ -179,11 +179,11 @@ Building for distribution
 
 Pushing the distribution to the test server (changes require upversioning)
 
-`twine upload --repository testpypi --skip-existing dist/*`
+`twine upload --repository pypi --skip-existing dist/*`
 
 Pulling the distribution for use in another project
 
-`pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadictionary==0.0.12`
+`pip install dbt-datadictionary==0.0.12`
 
 ## **Important Note**
 
