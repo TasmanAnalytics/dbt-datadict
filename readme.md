@@ -2,8 +2,8 @@
 
 The dbt Data Dictionary is a command-line tool that provides helpful tools to improve the process of managing column-level documentation across a large dbt project. It has the following key features:
 
-1. It will analyse your existing dbt project for model yaml files, and for each column summarise the different column description versions, and models that the column appears in.
-2. It once set in the dictionary, it will automatically apply descriptions for all columns with the same name (or alias) across the project.
+1. It works alongside dbt-labs/codegen to automate the model documentation creation process. By reviewing the models it can find, it uses codegen to identify the full column list and will merge this with what is already existing ikn the project, adding any missing models to a given file path.
+2. It will analyse your existing dbt project for model yaml files, and for each column summarise the different column description versions, and models that the column appears in. Once set in the dictionary, it will automatically apply descriptions for all columns with the same name (or alias) across the project.
 
 ## **How to Use the Application**
 
