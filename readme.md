@@ -33,15 +33,15 @@ $ datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 
 ### **Options:**
 
-- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
-- `-f, --file <NAME>`: The file to store any new models in.
-- `--sort`: Triggers the generated YAML files to be sorted alphabetically.
+- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
+- **`-f, --file <NAME>`**: The file to store any new models in.
+- **`--sort`**: Triggers the generated YAML files to be sorted alphabetically.
 
 ### **Generation Process**
 1. dbt installation is validated by running `dbt debug` and `dbt deps`
-2. The supplied directory is searched recursively for YAML model files.
-3. The supplied directory is serach for model files (ending with .sql)
-4. dbt-labs/codegen is used to obtain the full column lists for each of the models.
+2. The supplied directory is searched recursively for YAML model files (ending with .yml or .yaml).
+3. The supplied directory is searched for model files (ending with .sql)
+4. dbt-labs/codegen is used to obtain the full column lists for each of the models that we found in the directory.
 5. Models in existing YAML model files are synchronised with the expected column list.
 6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`
 
