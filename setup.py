@@ -12,7 +12,7 @@ setup(
     author = 'Tom Shelley',
     author_email = 'tom@tasman.ai',
     license = 'GNU GENERAL PUBLIC LICENSE',
-    description = 'A Python application for automating the application of consistent field definitions to large multi-layered dbt projects',
+    description = 'A Python application for automating the generation of dbt metadata and application of consistent field definitions to large multi-layered dbt projects',
     long_description = long_description,
     long_description_content_type = "text/markdown",
     url = 'https://github.com/TasmanAnalytics/dbt-datadictionary',
