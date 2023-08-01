@@ -21,7 +21,7 @@ def apply(dictionary, directory):
 @cli.command()
 @click.option('-D', '--directory', type=str, help='Directory to apply dictionary', default='models/')
 @click.option('-f', '--file', type=str, help='Name to give the generated YAML file', default='models.yml')
-@click.option('--sort/--no-sort', help='Triggers the generated YAML files to be sorted alphabetically', default=False)
+@click.option('--sort/--no-sort', help='Triggers the generated YAML files to be sorted alphabetically', default=True)
 def generate(directory, file, sort):
     """
     This command generates model YAML files in a specified directory. Existing model YAML files are evaluated,
