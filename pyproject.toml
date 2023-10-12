@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "datadict"
+version = "0.1.0"
+description = "Python CLI for automating the application of consistent field definitions to large multi-layered dbt projects."
+authors = ["tom <tom@tasman.ai>"]
+readme = "README.md"
+license = "GNU GENERAL PUBLIC LICENSE"
+packages = [
+    { include = "datadict" },
+]
+exclude = [
+    "tests",
+    "Makefile", 
+    "README.md",
+    "pyproject.toml",
+    "poetry.lock"
+]
+
+[tool.poetry.scripts]
+datadict = "datadict:cli"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+"ruamel.yaml" = "^0.17.35"
+click = "^8.1.7"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
