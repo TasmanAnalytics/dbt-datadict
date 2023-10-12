@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "datadict"
+name = "dbt-datadict"
 version = "0.1.0"
 description = "Python CLI for automating the application of consistent field definitions to large multi-layered dbt projects."
 authors = ["tom <tom@tasman.ai>"]
