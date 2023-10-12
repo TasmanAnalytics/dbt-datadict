@@ -1,31 +1,33 @@
-import subprocess
-import os
 import logging
+import subprocess
+
 import ruamel.yaml
+
 
 def parse_bash_outputs(input_string) -> str:
     """
-    This function parses the bash output represented by `input_string`, extracts and returns the portion of the 
-    output starting from the occurrence of the substring 'version: 2' to the end. 
+    This function parses the bash output represented by `input_string`, extracts and returns the portion of the
+    output starting from the occurrence of the substring 'version: 2' to the end.
 
-    If 'version: 2' is not found, it returns an empty string. In case of any exceptions during the execution, 
+    If 'version: 2' is not found, it returns an empty string. In case of any exceptions during the execution,
     it logs an error message with details of the exception.
 
     Args:
         input_string (str): The bash output as a string.
 
     Returns:
-        str: The substring of `input_string` starting from 'version: 2' to the end. If 'version: 2' is not found, 
+        str: The substring of `input_string` starting from 'version: 2' to the end. If 'version: 2' is not found,
              it returns an empty string.
     """
     try:
-        version_two_index = input_string.find('version: 2')
+        version_two_index = input_string.find("version: 2")
         if version_two_index != -1:
             return input_string[version_two_index:]
         else:
-            return ''
+            return ""
     except Exception as e:
-        logging.error('There was an issue parsing the codegen outputs: ' + e)
+        logging.error("There was an issue parsing the codegen outputs: " + e)
+
 
 def validate_dbt() -> bool:
     """
@@ -42,28 +44,34 @@ def validate_dbt() -> bool:
     Returns:
         bool: True if the dbt project is successfully validated; False otherwise.
     """
-    logging.info('Validating dbt project...')
+    logging.info("Validating dbt project...")
     try:
-        #Check debug passes
+        # Check debug passes
         bash_command = ["dbt", "debug"]
-        result = subprocess.run(bash_command, capture_output=True).stdout.decode('UTF-8')
-        if 'All checks passed!' not in result:
-            logging.error("Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying.")
+        result = subprocess.run(bash_command, capture_output=True).stdout.decode(
+            "UTF-8"
+        )
+        if "All checks passed!" not in result:
+            logging.error(
+                "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
+            )
             return False
-        
-        #Check codegen installed
+
+        # Check codegen installed
         bash_command = ["dbt", "deps"]
-        result = subprocess.run(bash_command, capture_output=True).stdout.decode('UTF-8')
-        if 'dbt-labs/codegen' not in result:
-            logging.error('dbt-labs/codegen is required to perform this operation')
+        result = subprocess.run(bash_command, capture_output=True).stdout.decode(
+            "UTF-8"
+        )
+        if "dbt-labs/codegen" not in result:
+            logging.error("dbt-labs/codegen is required to perform this operation")
             return False
-        
-        #Otherwise confirm valid
-        logging.info('dbt project successfully validated')
+
+        # Otherwise confirm valid
+        logging.info("dbt project successfully validated")
         return True
-    
+
     except Exception as e:
-        logging.error('Issues encountered when attempting to validate dbt: ' + e)
+        logging.error("Issues encountered when attempting to validate dbt: " + e)
         return False
 
 
@@ -93,13 +101,22 @@ def get_model_yaml(model_names) -> str:
     try:
         logging.info(f'Generating base model for models: {", ".join(model_names)}')
         args = {"model_names": model_names}
-        bash_command = ["dbt", "run-operation", "generate_model_yaml", "--args", str(args)]
-        result = subprocess.run(bash_command, capture_output=True).stdout.decode('UTF-8')
-        if 'Compilation Error' in result:
-            logging.error('Issues encountered when generating the model yaml: ' + result)
+        bash_command = [
+            "dbt",
+            "run-operation",
+            "generate_model_yaml",
+            "--args",
+            str(args),
+        ]
+        result = subprocess.run(bash_command, capture_output=True).stdout.decode(
+            "UTF-8"
+        )
+        if "Compilation Error" in result:
+            logging.error(
+                "Issues encountered when generating the model yaml: " + result
+            )
         else:
             yaml = ruamel.yaml.YAML()
             return yaml.load(parse_bash_outputs(result))
     except Exception as e:
-        logging.error('Issues encountered when generating the model yaml: ' + e)
-    
+        logging.error(f"Issues encountered when generating the model yaml: {e}")

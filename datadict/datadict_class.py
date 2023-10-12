@@ -1,10 +1,12 @@
-import ruamel.yaml
 import logging
 import os
+
+import ruamel.yaml
+
 from datadict import datadict_helpers
 
-class datadict:
 
+class datadict:
     def __init__(self, dictionary_file_path, detailed_logs=True) -> None:
         """
         Initialize the object with the given dictionary file path and detailed logging settings.
@@ -46,7 +48,7 @@ class datadict:
         """
         self.yaml = ruamel.yaml.YAML()
         self._apply_yaml_config()
-    
+
     def _apply_yaml_config(self) -> None:
         """
         Apply YAML configuration settings.
@@ -65,7 +67,7 @@ class datadict:
         self.yaml.preserve_quotes = True
         self.yaml.indent(mapping=2, sequence=4, offset=2)
         self.yaml.width = 200
-    
+
     def _init_logging(self):
         """
         Initialize logging configuration for the object.
@@ -80,9 +82,9 @@ class datadict:
         Returns:
             None
         """
-        logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    def _log(self, message, level='info') -> None:
+    def _log(self, message, level="info") -> None:
         """
         Logs a message with the specified log level.
 
@@ -96,13 +98,13 @@ class datadict:
         Returns:
             None
         """
-        if level == 'warning':
+        if level == "warning":
             logging.warning(message)
-        elif level == 'error':
+        elif level == "error":
             logging.error(message)
         elif self.detailed_logs:
             logging.info(message)
-    
+
     def _try_load_dictionary(self) -> dict:
         """
         Tries to load a dictionary from a given path, and if it doesn't exist, creates a new dictionary.
@@ -114,11 +116,15 @@ class datadict:
         Returns:
             dict: A dictionary loaded from the specified path if the file exists, otherwise, a newly created dictionary.
         """
-        if os.path.isfile(self.dictionary_path) and os.path.exists(self.dictionary_path):
-            self._log(f'Dictionary {self.dictionary_path} found successfully.')
+        if os.path.isfile(self.dictionary_path) and os.path.exists(
+            self.dictionary_path
+        ):
+            self._log(f"Dictionary {self.dictionary_path} found successfully.")
             return self._load_dictionary()
         else:
-            self._log(f'Dictionary {self.dictionary_path} not found. Creating dictionary...')
+            self._log(
+                f"Dictionary {self.dictionary_path} not found. Creating dictionary..."
+            )
             return self._create_dictinary()
 
     def _load_dictionary(self) -> dict:
@@ -136,16 +142,21 @@ class datadict:
             Exception: If an error occurs while loading the dictionary from the YAML file.
         """
         try:
-            with open(self.dictionary_path, 'r') as file:
-                self._log(f"Dictionary file '{self.dictionary_path}' loaded successfully.")
+            with open(self.dictionary_path, "r") as file:
+                self._log(
+                    f"Dictionary file '{self.dictionary_path}' loaded successfully."
+                )
                 return self.yaml.load(file)
         except FileNotFoundError:
-            self._log(f"Dictionary file '{self.dictionary_path}' not found.", level='error')
+            self._log(
+                f"Dictionary file '{self.dictionary_path}' not found.", level="error"
+            )
             raise
         except Exception:
-            self._log(f"Error loading dictionary file '{self.dictionary_path}'", level='error')
+            self._log(
+                f"Error loading dictionary file '{self.dictionary_path}'", level="error"
+            )
             raise
-            
 
     def _create_dictinary(self) -> dict:
         """
@@ -163,17 +174,24 @@ class datadict:
             SystemExit: If a critical error occurs during the creation process.
         """
         try:
-            with open(self.dictionary_path, 'w') as file:
-                base_yaml = {'dictionary': []}
+            with open(self.dictionary_path, "w") as file:
+                base_yaml = {"dictionary": []}
                 self.yaml.dump(base_yaml, file)
-                self._log(f"The file '{self.dictionary_path}' was successfully created.")
-            with open(self.dictionary_path, 'r') as file:
-                self._log(f"Dictionary file '{self.dictionary_path}' loaded successfully.")
+                self._log(
+                    f"The file '{self.dictionary_path}' was successfully created."
+                )
+            with open(self.dictionary_path, "r") as file:
+                self._log(
+                    f"Dictionary file '{self.dictionary_path}' loaded successfully."
+                )
                 return self.yaml.load(file)
         except IOError:
-            self._log(f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists.", level='error')
+            self._log(
+                f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists.",
+                level="error",
+            )
             raise SystemExit
-    
+
     def _format_dictionary(self, dictionary_yml) -> dict:
         """
         Format the dictionary data to ensure consistent structure.
@@ -190,18 +208,18 @@ class datadict:
             dictionary_yml (dict): The formatted dictionary
         """
         try:
-            if 'dictionary' in dictionary_yml:
-                if dictionary_yml['dictionary'] is not None:
-                    for field_num, field in enumerate(dictionary_yml['dictionary']):
-                        if 'description' not in field:
-                            dictionary_yml['dictionary'][field_num]['description'] = ''
-                        if 'aliases' not in field:
-                            dictionary_yml['dictionary'][field_num]['aliases'] = []
+            if "dictionary" in dictionary_yml:
+                if dictionary_yml["dictionary"] is not None:
+                    for field_num, field in enumerate(dictionary_yml["dictionary"]):
+                        if "description" not in field:
+                            dictionary_yml["dictionary"][field_num]["description"] = ""
+                        if "aliases" not in field:
+                            dictionary_yml["dictionary"][field_num]["aliases"] = []
             else:
-                dictionary_yml['dictionary'] = []
+                dictionary_yml["dictionary"] = []
             return dictionary_yml
         except TypeError:
-            self._log('There was an error when trying to format the dictionary')
+            self._log("There was an error when trying to format the dictionary")
 
     def _parse_aliases(self, dictionary) -> list:
         """
@@ -219,18 +237,18 @@ class datadict:
         """
         try:
             values = []
-            if dictionary['dictionary'] is None:
+            if dictionary["dictionary"] is None:
                 return values
-            for dict_column in dictionary['dictionary']:
-                values.append(dict_column['name'])
+            for dict_column in dictionary["dictionary"]:
+                values.append(dict_column["name"])
                 try:
-                    for alias in dict_column['aliases']:
+                    for alias in dict_column["aliases"]:
                         values.append(alias)
                 except:
                     pass
             return values
         except TypeError:
-            self._log('There was an error when trying to parse the dictionary')
+            self._log("There was an error when trying to parse the dictionary")
 
     def _insert_dict_item(self, dictionary, key, value, index) -> dict:
         """
@@ -255,7 +273,7 @@ class datadict:
         values.insert(index, value)
         modified_dict = dict(zip(keys, values))
         return modified_dict
-    
+
     def _update_existing_field(self, model_column, model, file_path) -> None:
         """
         Update the list of existing fields with model column details.
@@ -274,10 +292,23 @@ class datadict:
         Returns:
             None
         """
-        if 'description' in model_column:
-            self.existing_fields.append({"name": model_column['name'], "description": model_column['description'], "model":model['name'], "file": file_path})
+        if "description" in model_column:
+            self.existing_fields.append(
+                {
+                    "name": model_column["name"],
+                    "description": model_column["description"],
+                    "model": model["name"],
+                    "file": file_path,
+                }
+            )
         else:
-            self.existing_fields.append({"name": model_column['name'], "model":model['name'], "file": file_path})
+            self.existing_fields.append(
+                {
+                    "name": model_column["name"],
+                    "model": model["name"],
+                    "file": file_path,
+                }
+            )
 
     def _iterate_dictionary_update(self, model_yaml, file_path) -> dict:
         """
@@ -299,34 +330,81 @@ class datadict:
         """
         updated = False
         try:
-            for model_number, model in enumerate(model_yaml['models']):
-                if 'columns' in model:
-                    for col_num, model_column in enumerate(model['columns']):
-                        if self.dictionary_yml['dictionary'] is not None:
-                            for dict_num, dict_column in enumerate(self.dictionary_yml['dictionary']):
-                                if model_column['name'] == dict_column['name'] or model_column['name'] in dict_column['aliases']:
-                                    if 'description' in model_yaml['models'][model_number]['columns'][col_num]:
-                                        if model_yaml['models'][model_number]['columns'][col_num]['description'] != dict_column['description'] and dict_column['description'] != '':
-                                            model_yaml['models'][model_number]['columns'][col_num]['description'] = dict_column['description']
-                                            self._log(f"Field '{model_column['name']}' in file '{file_path}' has been updated.")
+            for model_number, model in enumerate(model_yaml["models"]):
+                if "columns" in model:
+                    for col_num, model_column in enumerate(model["columns"]):
+                        if self.dictionary_yml["dictionary"] is not None:
+                            for dict_num, dict_column in enumerate(
+                                self.dictionary_yml["dictionary"]
+                            ):
+                                if (
+                                    model_column["name"] == dict_column["name"]
+                                    or model_column["name"] in dict_column["aliases"]
+                                ):
+                                    if (
+                                        "description"
+                                        in model_yaml["models"][model_number][
+                                            "columns"
+                                        ][col_num]
+                                    ):
+                                        if (
+                                            model_yaml["models"][model_number][
+                                                "columns"
+                                            ][col_num]["description"]
+                                            != dict_column["description"]
+                                            and dict_column["description"] != ""
+                                        ):
+                                            model_yaml["models"][model_number][
+                                                "columns"
+                                            ][col_num]["description"] = dict_column[
+                                                "description"
+                                            ]
+                                            self._log(
+                                                f"Field '{model_column['name']}' in file '{file_path}' has been updated."
+                                            )
                                             updated = True
-                                    elif dict_column['description'] != '':
-                                        model_yaml['models'][model_number]['columns'][col_num] = self._insert_dict_item(model_yaml['models'][model_number]['columns'][col_num], 'description', dict_column['description'], 1)
-                                        self._log(f"Field '{model_column['name']}' in file '{file_path}' has been updated.")
+                                    elif dict_column["description"] != "":
+                                        model_yaml["models"][model_number]["columns"][
+                                            col_num
+                                        ] = self._insert_dict_item(
+                                            model_yaml["models"][model_number][
+                                                "columns"
+                                            ][col_num],
+                                            "description",
+                                            dict_column["description"],
+                                            1,
+                                        )
+                                        self._log(
+                                            f"Field '{model_column['name']}' in file '{file_path}' has been updated."
+                                        )
                                         updated = True
-                                    if 'models' in dict_column:
-                                        if model['name'] not in self.dictionary_yml['dictionary'][dict_num]['models']:
-                                            self.dictionary_yml['dictionary'][dict_num]['models'].append(model['name'])
+                                    if "models" in dict_column:
+                                        if (
+                                            model["name"]
+                                            not in self.dictionary_yml["dictionary"][
+                                                dict_num
+                                            ]["models"]
+                                        ):
+                                            self.dictionary_yml["dictionary"][dict_num][
+                                                "models"
+                                            ].append(model["name"])
                                     else:
-                                        self.dictionary_yml['dictionary'][dict_num]['models'] = [model['name']]
+                                        self.dictionary_yml["dictionary"][dict_num][
+                                            "models"
+                                        ] = [model["name"]]
                         self._update_existing_field(model_column, model, file_path)
                 else:
-                    self._log(f"No columns found for model {model['name']} in '{file_path}'", level='warning')
+                    self._log(
+                        f"No columns found for model {model['name']} in '{file_path}'",
+                        level="warning",
+                    )
             if updated:
                 return {"updated": True, "model_yaml": model_yaml}
         except Exception as error:
-            self._log(f"Error getting file updates for '{file_path}': {error}", level='error')
-        return  {"updated": False}
+            self._log(
+                f"Error getting file updates for '{file_path}': {error}", level="error"
+            )
+        return {"updated": False}
 
     def _collate_metadata(self, existing_fields) -> list:
         """
@@ -347,33 +425,53 @@ class datadict:
         metadata = {}
         result = []
 
-        #extract metadata from existing field list
+        # extract metadata from existing field list
         for field in existing_fields:
-            name = field['name']
-            model = field['model']
-            description = field.get('description', '')
+            name = field["name"]
+            model = field["model"]
+            description = field.get("description", "")
 
             if name not in metadata:
-                metadata[name] = {'description_versions': [description], 'description': description, 'models':[model]}
+                metadata[name] = {
+                    "description_versions": [description],
+                    "description": description,
+                    "models": [model],
+                }
             else:
-                metadata[name]['description_versions'].append(description)
-                metadata[name]['models'].append(model)
+                metadata[name]["description_versions"].append(description)
+                metadata[name]["models"].append(model)
 
-        #summarise metadata
+        # summarise metadata
         for name, info in metadata.items():
-            versions = list(set([version for version in info['description_versions'] if version != '']))
+            versions = list(
+                set(
+                    [
+                        version
+                        for version in info["description_versions"]
+                        if version != ""
+                    ]
+                )
+            )
             versions.sort()
-            models = list(set(info['models']))
+            models = list(set(info["models"]))
             models.sort()
             if len(versions) > 1:
-                result.append({'name': name, 'description': '', 'description_versions': versions, 'models': models})
+                result.append(
+                    {
+                        "name": name,
+                        "description": "",
+                        "description_versions": versions,
+                        "models": models,
+                    }
+                )
             else:
-                result.append({'name': name, 'description': info['description'], 'models': models})
-            
+                result.append(
+                    {"name": name, "description": info["description"], "models": models}
+                )
 
-        #return field list sorted by name
-        return sorted(result, key=lambda d: d['name'])
-    
+        # return field list sorted by name
+        return sorted(result, key=lambda d: d["name"])
+
     def _output_dictionary(self) -> None:
         """
         Output the updated dictionary YAML data to a file.
@@ -389,13 +487,16 @@ class datadict:
             None
         """
         try:
-            with open(self.dictionary_path, 'w') as file:
+            with open(self.dictionary_path, "w") as file:
                 self.yaml.dump(self.dictionary_yml, file)
                 datadict_helpers.add_spaces_between_cols(self.dictionary_path)
             self._log(f"Dictionary '{self.dictionary_path}' has been updated")
         except Exception as error:
-            self._log(f"There was a problem updating dictionary '{self.dictionary_path}'. {error}", level='error')
-    
+            self._log(
+                f"There was a problem updating dictionary at '{self.dictionary_path}'. {error}",
+                level="error",
+            )
+
     def apply_data_dictionary_to_file(self, file_path) -> None:
         """
         Apply the data dictionary updates to the specified model YAML file.
@@ -412,21 +513,25 @@ class datadict:
         Returns:
             None
         """
-        self._log(f"Checking file '{file_path}'...")  
+        self._log(f"Checking file '{file_path}'...")
         model_yaml = datadict_helpers.open_model_yml_file(self.yaml, file_path)
-        if model_yaml['status'] == 'valid':
+        if model_yaml["status"] == "valid":
             try:
-                updates = self._iterate_dictionary_update(model_yaml['yaml'], file_path)
-                if updates['updated']:
-                    datadict_helpers.output_model_file(self.yaml, file_path, updates['model_yaml'], False)
-                    self._log(f'File {file_path} has been updated')
+                updates = self._iterate_dictionary_update(model_yaml["yaml"], file_path)
+                if updates["updated"]:
+                    datadict_helpers.output_model_file(
+                        self.yaml, file_path, updates["model_yaml"], False
+                    )
+                    self._log(f"File {file_path} has been updated")
                 else:
                     self._log(f"No updates found for file '{file_path}'")
-            
+
             except FileNotFoundError:
-                self._log(f"File '{file_path}' not found.", level='error')
+                self._log(f"File '{file_path}' not found.", level="error")
             except Exception as e:
-                self._log(f"Error processing file '{file_path}'. Error: " + e, level='error')
+                self._log(
+                    f"Error processing file '{file_path}'. Error: " + e, level="error"
+                )
         else:
             self._log(f"File '{file_path}' contains no models and has been skipped.")
 
@@ -447,12 +552,15 @@ class datadict:
         if os.path.exists(directory) and os.path.isdir(directory):
             for root, dirs, files in os.walk(directory):
                 for file in files:
-                    if file.endswith('.yaml') or file.endswith('.yml'):
+                    if file.endswith(".yaml") or file.endswith(".yml"):
                         file_path = os.path.join(root, file)
                         self.apply_data_dictionary_to_file(file_path)
         else:
-          self._log(f"Directory '{directory}' doesn't exist or can't be found", level='error')  
-    
+            self._log(
+                f"Directory '{directory}' doesn't exist or can't be found",
+                level="error",
+            )
+
     def collate_output_dictionary(self):
         """
         Collate metadata and update the data dictionary before writing to the dictionary file.
@@ -480,5 +588,5 @@ class datadict:
             the '_output_dictionary()' method.
         """
         existing_field_descriptions = self._collate_metadata(self.existing_fields)
-        self.dictionary_yml['dictionary'] = existing_field_descriptions
+        self.dictionary_yml["dictionary"] = existing_field_descriptions
         self._output_dictionary()
