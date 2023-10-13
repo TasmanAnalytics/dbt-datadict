@@ -28,7 +28,7 @@ datadict = "datadict:cli"
 [tool.poetry.dependencies]
 python = "^3.10"
 "ruamel.yaml" = "^0.17.35"
-click = "^8.1.7"
+click = ">=7.0,<8.1.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.9.1"
