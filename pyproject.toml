@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "dbt-datadict"
-version = "0.1.0"
+version = "0.1.1a0"
 description = "Python CLI for automating the application of consistent field definitions to large multi-layered dbt projects."
 authors = ["tom <tom@tasman.ai>"]
 readme = "README.md"
 license = "GNU GENERAL PUBLIC LICENSE"
+homepage = "https://github.com/TasmanAnalytics/dbt-datadictionary"
 packages = [
     { include = "datadict" },
 ]
@@ -14,6 +15,11 @@ exclude = [
     "README.md",
     "pyproject.toml",
     "poetry.lock"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",  
+    "Programming Language :: Python :: 3.8",
+    "Operating System :: OS Independent",
 ]
 
 [tool.poetry.scripts]
