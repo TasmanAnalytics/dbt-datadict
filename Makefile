@@ -8,8 +8,8 @@ poetry: ## Install poetry
 	fi
 	poetry install
 
-publish: build ##& Publish the datadict Python package
-	poetry publish --build
+publish-test: build ##& Publish the datadict Python package to Test PyPI
+	poetry publish --repository testpypi
 
 build: poetry ## Build the datadict Python package
 	poetry build

@@ -1,43 +1,50 @@
 # dbt Data Dictionary
 
+## What is dbt Data Dictionary?
+
 The dbt Data Dictionary is a command-line tool that provides helpful tools to improve the process of managing column-level documentation across a large dbt project. It has the following key features:
 
 1. It will analyse your existing dbt project for model yaml files, and for each column summarise the different column description versions, and models that the column appears in.
 2. It once set in the dictionary, it will automatically apply descriptions for all columns with the same name (or alias) across the project.
 
-## **How to Use the Application**
+## How to use dbt Data Dictionary
 
 ### **Installation**
 
 1. Install dbt data dictionary using
     
     ```bash
-    pip install dbt-datadict
+    $ python -m pip install dbt-datadict
     ```
-    
+2. Start using the `datadict` CLI command.
+    ```bash
+    $ datadict --help
+    ```
 
-### **Command-Line Interface (CLI) Usage**
+### Command-Line Interface (CLI) Usage
 
 The Data Dictionary Application provides a command-line interface (CLI) that allows you to interact with the library easily.
-### Command: `generate`
+
+#### Command: `generate`
 
 This command generates yaml files using the dbt-codegen package. Where it finds existing model yaml files, it will merge the full column lists. For missing models, it will create a separate model yaml file using the name provided.
 
-**IMPORTANT**: This command will only run in a valid dbt project with dbt-labs/codegen installed.
+> **Warning**
+> This command will only run in a valid dbt project with the dbt-labs/codegen dbt package installed.
 
-### **Usage:**
+##### **Usage:**
 
 ```bash
 $ datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 ```
 
-### **Options:**
+##### **Options:**
 
 - `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
 - `-f, --file <NAME>`: The file to store any new models in.
 - `--sort`: Triggers the generated YAML files to be sorted alphabetically.
 
-### **Generation Process**
+##### **Generation Process**
 1. dbt installation is validated by running `dbt debug` and `dbt deps`
 2. The supplied directory is searched recursively for YAML model files.
 3. The supplied directory is serach for model files (ending with .sql)
@@ -45,17 +52,17 @@ $ datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 5. Models in existing YAML model files are synchronised with the expected column list.
 6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`
 
-### Command: **`apply`**
+#### Command: **`apply`**
 
 This command applies data dictionary updates to all model YAML files in the specified directory and its subdirectories.
 
-### **Usage:**
+##### **Usage:**
 
 ```bash
 $ datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
 ```
 
-### **Options:**
+##### **Options:**
 
 - **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
 - **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
@@ -63,7 +70,7 @@ $ datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
 
 ## Examples
 
-Given the following model yaml file example:
+Given the following dbt model yaml file example:
 
 ```yaml
 version: 2
@@ -86,7 +93,7 @@ models:
         description: 'field_3_description_1'
 ```
 
-Running `dbt_datadict apply` would create a data dictionary as follows:
+Running `datadict apply` would create a data dictionary as follows:
 
 ```yaml
 dictionary:
@@ -159,38 +166,61 @@ models:
         description: 'field_3_description_1'
 ```
 
-## Developing Locally and distributing
+## Getting Started
 
-Create the venv
+1. Install package dependencies
 
-`make init`
+    ```bash
+    $ poetry install
+    ```
 
-Activate the venv
+2. To build the package locally, run the following command:
 
-`. .venv/bin/activate`
+    ```bash
+    $ poetry build
+    ```
 
-Building locally
+3. To configure `poetry` to publish the package to Test PyPI, run the following:
 
-`python setup.py develop`
+    ```bash
+    $ export TEST_PYPI_TOKEN=<token>  # Replace <token> with your Test PyPI token
+    $ poetry config pypi-token.testpypi $TEST_PYPI_TOKEN
+    $ poetry config repositories.testpypi https://test.pypi.org/legacy/
+    ```
 
-Building for distribution
+4. To publish the package to Test PyPI, run the following command:
 
-`python setup.py sdist bdist_wheel`
+    ```bash
+    $ poetry publish --repository testpypi
+    ```
 
-Pushing the distribution to Test PyPi (changes require upversioning and access)
+5. To bump the version of the package, run the following command:
 
-`twine upload --repository testpypi --skip-existing dist/*`
+    ```bash
+    $ poetry version <version>  # Replace <version> with the new version number
+    ```
 
-Pushing the distribution to Production PyPi (changes require upversioning and access)
+    > **Hint**
+    > Run `poetry version --help` to see Poetry's options for automatic SemVer version bumping.
 
-`twine upload --repository pypi --skip-existing dist/*`
+6. To pull the package from Test PyPI, run the following command:
 
-Pulling a test distribution
+    ```bash
+    $ python -m pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadict==<version>  # Replace <version>
+    ```
 
-`pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadictionary==<version>`
+    > **Hint**
+    > If you want to validate that the package is installed as intended, consider creating another virtual environment and installing the package there, rather than installing it in the same environment that you're developing in.
 
 ## **Important Note**
 
 It is highly recommend to only use this library in a version controlled environment, such as git. Additionally, please ensure that you have backed up your model YAML files and data dictionary before applying any updates. The application modifies files in place and does not create backups automatically.
 
 Use this application responsibly and verify the updates before proceeding.
+
+## Contributing
+We encourage you to contribute to dbt Data Dictionary! Please check out our [Contributing to dbt Data Dictionary](CONTRIBUTING.md) guide for guidelines about how to proceed.
+
+## License
+
+dbt Data Dictionary is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
