@@ -1,11 +1,9 @@
-# dbt Data Dictionary
+# dbt datadict
 
-## What is dbt Data Dictionary?
+dbt-datadict is a command-line tool that provides helpful tools to improve the process of managing column-level documentation across a large dbt project. It has the following key features:
 
-The dbt Data Dictionary is a command-line tool that provides helpful tools to improve the process of managing column-level documentation across a large dbt project. It has the following key features:
-
-1. It will analyse your existing dbt project for model yaml files, and for each column summarise the different column description versions, and models that the column appears in.
-2. It once set in the dictionary, it will automatically apply descriptions for all columns with the same name (or alias) across the project.
+1. It works alongside dbt-labs/codegen to automate the model documentation creation process. By reviewing the models it can find, it uses codegen to identify the full column list and will merge this with what is already existing ikn the project, adding any missing models to a given file path.
+2. It will analyse your existing dbt project for model yaml files, and for each column summarise the different column description versions, and models that the column appears in. Once set in the dictionary, it will automatically apply descriptions for all columns with the same name (or alias) across the project.
 
 ## How to use dbt Data Dictionary
 
@@ -40,15 +38,15 @@ $ datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
 
 ##### **Options:**
 
-- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: 'models/'.
-- `-f, --file <NAME>`: The file to store any new models in.
-- `--sort`: Triggers the generated YAML files to be sorted alphabetically.
+- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
+- **`-f, --file <NAME>`**: The file to store any new models in.
+- **`--sort`**: Triggers the generated YAML files to be sorted alphabetically.
 
 ##### **Generation Process**
 1. dbt installation is validated by running `dbt debug` and `dbt deps`
-2. The supplied directory is searched recursively for YAML model files.
-3. The supplied directory is serach for model files (ending with .sql)
-4. dbt-labs/codegen is used to obtain the full column lists for each of the models.
+2. The supplied directory is searched recursively for YAML model files (ending with .yml or .yaml).
+3. The supplied directory is searched for model files (ending with .sql)
+4. dbt-labs/codegen is used to obtain the full column lists for each of the models that we found in the directory.
 5. Models in existing YAML model files are synchronised with the expected column list.
 6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`
 
