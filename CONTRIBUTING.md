@@ -10,6 +10,9 @@
 - Open a new GitHub Pull Request with the patch.
 - Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
 
+## How do I configure a local environment?
+
+- Please see our [developer guide](docs/developer_guide.md)
 
 ---
 
