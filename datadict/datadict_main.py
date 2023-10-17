@@ -52,7 +52,7 @@ def apply(dictionary, directory):
 @click.option(
     "--sort/--no-sort",
     help="Triggers the generated YAML files to be sorted alphabetically",
-    default=False,
+    default=True,
 )
 def generate(directory, file, sort):
     """
