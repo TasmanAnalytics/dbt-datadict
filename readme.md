@@ -33,7 +33,7 @@ This command generates yaml files using the dbt-codegen package. Where it finds 
 ##### **Usage:**
 
 ```bash
-$ datadict generate [-d <DICTIONARY>] [-D <DIRECTORY>]
+$ datadict generate [-D <DIRECTORY>] [-f <NAME>] 
 ```
 
 ##### **Options:**
