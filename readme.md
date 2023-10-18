@@ -45,13 +45,13 @@ This command applies data dictionary updates to all model YAML files in the spec
 
 #### **Usage:**
 ```bash
-$ datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
+$ datadict apply [-D <DIRECTORY>] [-d <DICTIONARY>] 
 ```
 
 #### **Options:**
 
-- **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
 - **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
+- **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
 
 
 
