@@ -36,7 +36,7 @@ $ datadict generate [-D <DIRECTORY>] [-f <NAME>]
 #### **Options:**
 
 - **`-D, --directory <DIRECTORY>`**: Directory to search for models. Default: 'models/'.
-- **`-f, --file <NAME>`**: The yaml file to write store new model configurations that aren't referenced in an existing yaml file.
+- **`-f, --file <NAME>`**: The yaml file to store new model configurations that aren't referenced in an existing yaml file.
 - **`--sort`**: Triggers the generated YAML files to be sorted alphabetically (on by default). 
 
 ### Command: **`apply`**
