@@ -35,8 +35,8 @@ $ datadict generate [-D <DIRECTORY>] [-f <NAME>]
 
 #### **Options:**
 
-- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
-- **`-f, --file <NAME>`**: The file to store any new models in.
+- **`-D, --directory <DIRECTORY>`**: Directory to search for models. Default: 'models/'.
+- **`-f, --file <NAME>`**: The yaml file to write store new model configurations that aren't referenced in an existing yaml file.
 - **`--sort`**: Triggers the generated YAML files to be sorted alphabetically (on by default). 
 
 ### Command: **`apply`**
@@ -50,7 +50,7 @@ $ datadict apply [-D <DIRECTORY>] [-d <DICTIONARY>]
 
 #### **Options:**
 
-- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
+- **`-D, --directory <DIRECTORY>`**: Directory to search for fields and apply the dictionary to. Default: 'models/'.
 - **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
 
 
