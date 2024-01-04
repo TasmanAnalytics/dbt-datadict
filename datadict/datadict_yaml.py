@@ -19,15 +19,14 @@ def check_files_for_models(yaml_obj, files) -> dict:
                     file_yamls.append(
                         {"file_path": file_path, "file_yaml": file_contents["yaml"]}
                     )
-                except Exception:
+                except Exception as error:
                     logging.error(
-                        f"There was an issue processing file '{file_path}'. Ensure it is formatted correctly and retry."
+                        f"There was an issue processing file '{file_path}'. Ensure it is formatted correctly and retry. Error: {error}"
                     )
         return {"model_list": model_list, "file_yamls": file_yamls}
-    except Exception as e:
+    except Exception as error:
         logging.error(
-            "Issues encountered when iterating through files to collect models. Error: "
-            + str(e)
+            f"Issues encountered when iterating through files to collect models. Error: {error}"
         )
 
 
@@ -53,8 +52,8 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
                 logging.warning(
                     f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'"
                 )
-
-        # Iterate through the existing columns and remove any that are not in the expected_yml
+       
+	# Iterate through the existing columns and remove any that are not in the expected_yml
     columns_to_remove = []
     for existing_column in existing_columns:
         name = existing_column.get("name")
@@ -74,7 +73,19 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
             logging.warning(
                 f"Column '{column['name']}' removed from model '{current_yml['name']}'"
             )
+    
+	# Create a dictionary to store the data types for easy lookup
+    data_types_dict = {column['name']: column['data_type'] for column in expected_yml.get("columns", [])}
 
+    # Add missing data_types to combined_yaml (but not update existing ones)
+    for column in combined_yaml['columns']:
+        if 'data_type' not in column:
+            column['data_type'] = data_types_dict[column['name']]
+            updated = True
+            logging.info(
+			    f"Added data_type '{column['data_type']}' to '{column['name']}' in model '{current_yml['name']}'"
+		    )
+    
     return {"yaml": combined_yaml, "updated": updated}
 
 
@@ -84,8 +95,8 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, 
     for file in existing_file_yamls:
         file_yaml = file["file_yaml"]
         path = file["file_path"]
-        try:
-            for model_num, model in enumerate(file_yaml["models"]):
+    try:
+        for model_num, model in enumerate(file_yaml["models"]):
                 for model_to_be_updated in models_to_be_updated:
                     if model_to_be_updated["name"] == model["name"]:
                         logging.info(f"Model {model['name']} is being checked...")
@@ -99,12 +110,12 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, 
                         else:
                             logging.info(f"Model {model['name']} is correct")
 
-            if updated_count > 0:
+        if updated_count > 0:
                 datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
-        except Exception:
-            logging.error(
-                f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file."
-            )
+    except Exception as error:
+        logging.error(
+            f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file. Error: {error}"
+        )
 
 
 def add_missing_models(yaml_obj, path, models, sort):
@@ -193,7 +204,7 @@ def generate_model_yamls(directory, name, sort=True):
             else:
                 models_to_be_added.append(model_column_list["models"][model_num])
 
-        # 5. For models in existing files, combine the column lists and write back to the existing file
+        # 5. For models in existing files, combine the column lists and write back to the existing file 
         if len(models_to_be_updated) > 0:
             logging.info(f"There are {len(models_to_be_updated)} models to be checked")
             updated_existing_files(
@@ -212,5 +223,5 @@ def generate_model_yamls(directory, name, sort=True):
         else:
             logging.info("There are no models to be added.")
 
-    except Exception as e:
-        logging.error("There was an error generating the YAML files. Error: " + str(e))
+    except Exception as error:
+        logging.error(f"There was an error generating the YAML files. Error: {error}")
