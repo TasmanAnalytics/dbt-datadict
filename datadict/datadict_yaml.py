@@ -85,6 +85,25 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
             logging.info(
 			    f"Added data_type '{column['data_type']}' to '{column['name']}' in model '{current_yml['name']}'"
 		    )
+
+	# Sort the keys in the specified order
+    desired_order = ['name', 'data_type', 'description', 'tests']
+    
+    for column in combined_yaml['columns']:
+        column['description'] = column.get('description', '')  # Set default 'description' key if missing
+
+        # Check if 'tests' key is present and remove it if not (we dont want empty test keys)
+        if 'tests' in column:
+            column['tests'] = column['tests']
+        else:
+            column.pop('tests', None)
+
+        # Sort the keys in the specified order
+        column_sorted = {key: column[key] for key in desired_order if key in column}
+
+        # Update the original dictionary with the sorted keys
+        column.clear()
+        column.update(column_sorted)
     
     return {"yaml": combined_yaml, "updated": updated}
 
