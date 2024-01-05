@@ -74,10 +74,9 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
                 f"Column '{column['name']}' removed from model '{current_yml['name']}'"
             )
     
-	# Create a dictionary to store the data types for easy lookup
+	# Add the data_type to any columns that are missing it & set empty description if missing
     data_types_dict = {column['name']: column['data_type'] for column in expected_yml.get("columns", [])}
 
-    # Add missing data_types to combined_yaml (but not update existing ones)
     for column in combined_yaml['columns']:
         if 'data_type' not in column:
             column['data_type'] = data_types_dict[column['name']]
@@ -86,22 +85,18 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
 			    f"Added data_type '{column['data_type']}' to '{column['name']}' in model '{current_yml['name']}'"
 		    )
 
-	# Sort the keys in the specified order
-    desired_order = ['name', 'data_type', 'description', 'tests']
+    sort_order = ['name', 'data_type', 'description', 'tests']
     
     for column in combined_yaml['columns']:
-        column['description'] = column.get('description', '')  # Set default 'description' key if missing
-
-        # Check if 'tests' key is present and remove it if not (we dont want empty test keys)
+        column['description'] = column.get('description', '')  
+        
         if 'tests' in column:
             column['tests'] = column['tests']
         else:
             column.pop('tests', None)
 
-        # Sort the keys in the specified order
-        column_sorted = {key: column[key] for key in desired_order if key in column}
-
-        # Update the original dictionary with the sorted keys
+        column_sorted = {key: column[key] for key in sort_order if key in column}
+        
         column.clear()
         column.update(column_sorted)
     
