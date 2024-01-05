@@ -52,7 +52,7 @@ def apply(dictionary, directory):
 @click.option(
     "--unique-model-yaml",
     "unique_model_yaml",
-    help="Creates a unique YAML file for each model",
+    help="Creates one YAML for each model with the same name as the model",
     default=False,
 )
 @click.option(

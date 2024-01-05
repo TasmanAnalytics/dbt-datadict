@@ -22,6 +22,7 @@ $ datadict generate [-D <DIRECTORY>] [-f <NAME>]
 - **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
 - **`-f, --file <NAME>`**: The file to store any new models in.
 - **`--sort`**: Triggers the generated YAML files to be sorted alphabetically (on by default).
+- **`--unique-model-yaml`**: Creates one YAML for each model with the same name as the model.
 
 #### **Generation Process**
 1. dbt installation is validated by running `dbt debug` and `dbt deps`
