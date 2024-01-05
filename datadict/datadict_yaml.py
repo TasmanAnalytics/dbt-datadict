@@ -142,21 +142,19 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
     Returns:
         None
     """
-    # Create a list of dictionaries with the model name, model path, and expected YAML file path
+
     model_dicts = [{
         'name': os.path.splitext(os.path.basename(file))[0],
         'model_path': file,
         'expected_yml_path': file.replace('.sql', '.yml')
     } for file in model_file_list]
 
-    # Extract only the "models" key and their children
     existing_models = []
 
     for item in existing_file_yamls:
         if "models" in item["file_yaml"]:
             existing_models.extend(item["file_yaml"]["models"])
     
-    # Combine the dictionaries based on the models "name" key 
     combined_dicts = []
 
     for item1 in model_dicts:
@@ -168,18 +166,14 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
         combined_dict = {**item1, **item2, **item3, **item4}
         combined_dicts.append(combined_dict)
 
-    # Set default values for the "file" key
     for dict in combined_dicts:
         dict.setdefault('file', None)
     
-    # Create empty set to store the files to remove
     files_to_remove = set()
 
-    # Write the models to their expected YAML files
     for model in combined_dicts:
         if model['file'] != model['expected_yml_path']:
 
-            # Prepare the model to be written to the expected YAML file
             model_to_write = model.copy()
             model_to_write.pop('file', None)
             model_to_write.pop('model_path', None)
@@ -189,7 +183,6 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
                 'models': [model_to_write]
             } 
 
-            # Write the model to the expected YAML file
             datadict_helpers.output_model_file(yaml_obj, model['expected_yml_path'], model_to_write, sort=False)
             
             if model['file'] is not None:
@@ -199,7 +192,6 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
         else:
             logging.info(f"Model '{model['name']}' is correct")
             
-    # After the models have been written to their expected YAML files, remove the current YAML files
     for file in files_to_remove:
         os.remove(file)
 
