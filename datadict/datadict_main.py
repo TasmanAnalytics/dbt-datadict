@@ -50,14 +50,21 @@ def apply(dictionary, directory):
     default="models.yml",
 )
 @click.option(
+    "--unique-model-yaml",
+    "unique_model_yaml",
+    help="Creates one YAML for each model with the same name as the model",
+    default=False,
+)
+@click.option(
     "--sort/--no-sort",
     help="Triggers the generated YAML files to be sorted alphabetically",
     default=True,
 )
-def generate(directory, file, sort):
+
+def generate(directory, file, unique_model_yaml, sort):
     """
     This command generates model YAML files in a specified directory. Existing model YAML files are evaluated,
     and the model metadata is combined and written back to the existing files. For models missing from existing files,
     a new file is created in the directory with the given name and the metadata for the missing models is written to it.
     """
-    datadict.generate_model_yamls(directory, file, sort)
+    datadict.generate_model_yamls(directory, file, unique_model_yaml, sort)

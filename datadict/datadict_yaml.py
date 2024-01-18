@@ -151,9 +151,77 @@ def add_missing_models(yaml_obj, path, models, sort):
         logging.info(f"File '{path}' doesn't exist and will be created.")
         file_yaml = {"version": 2, "models": models}
         datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
+        
+def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing_model_list, models_to_be_added):
+    """
+    Check for each model if the current YAML file matches the expected YAML file. The expected YAML 
+    file has the same name as the model file, but with a .yml extension.
+
+    Parameters:
+        yaml_obj (object): The YAML object.
+        model_file_list (list): List of model file paths.
+        existing_file_yamls (list): List of dictionaries with existing file YAMLs.
+        existing_model_list (list): List of dictionaries with with existing models.
+        models_to_be_added (list): List of dictionaries with models to be added.
+
+    Returns:
+        None
+    """
+
+    model_dicts = [{
+        'name': os.path.splitext(os.path.basename(file))[0],
+        'model_path': file,
+        'expected_yml_path': file.replace('.sql', '.yml')
+    } for file in model_file_list]
+
+    existing_models = []
+
+    for item in existing_file_yamls:
+        if "models" in item["file_yaml"]:
+            existing_models.extend(item["file_yaml"]["models"])
+    
+    combined_dicts = []
+
+    for item1 in model_dicts:
+        name = item1["name"]
+        item2 = next((item for item in models_to_be_added if item["name"] == name), {})
+        item3 = next((item for item in existing_model_list if item["name"] == name), {})
+        item4 = next((item for item in existing_models if item["name"] == name), {})
+        
+        combined_dict = {**item1, **item2, **item3, **item4}
+        combined_dicts.append(combined_dict)
+
+    for dict in combined_dicts:
+        dict.setdefault('file', None)
+    
+    files_to_remove = set()
+
+    for model in combined_dicts:
+        if model['file'] != model['expected_yml_path']:
+
+            model_to_write = model.copy()
+            model_to_write.pop('file', None)
+            model_to_write.pop('model_path', None)
+            model_to_write.pop('expected_yml_path', None)
+            model_to_write = {
+                'version': 2,
+                'models': [model_to_write]
+            } 
+
+            datadict_helpers.output_model_file(yaml_obj, model['expected_yml_path'], model_to_write, sort=False)
+            
+            if model['file'] is not None:
+                files_to_remove.add(model['file'])
+                logging.info(f"Model '{model['name']}' is being split into its own yaml file.")
+
+        else:
+            logging.info(f"Model '{model['name']}' is correct")
+            
+    for file in files_to_remove:
+        os.remove(file)
 
 
-def generate_model_yamls(directory, name, sort=True):
+def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
     """
     Generate model YAML files in a given directory.
 
@@ -228,7 +296,9 @@ def generate_model_yamls(directory, name, sort=True):
             logging.info("There are no models requiring updating.")
 
         # 6. For models missing from existing files, create a new file with the given name and output the metadata
-        if len(models_to_be_added) > 0:
+        if unique_model_yaml:
+            yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing_model_list, models_to_be_added)
+        elif len(models_to_be_added) > 0:
             file_name = os.path.join(directory, name)
             logging.info(
                 f"There are {len(models_to_be_added)} models to be added to file '{file_name}'"
