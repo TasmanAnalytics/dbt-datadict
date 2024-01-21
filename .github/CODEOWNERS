@@ -5,7 +5,7 @@
 # the repo. Unless a later match takes precedence,
 # these teams/reviewers will be requested for
 # review when someone opens a pull request.
-*       @tomshelllby
+*       @TasmanAnalytics/engineering-leads @sakce
 
 
 # All files in the below directory and any of its
