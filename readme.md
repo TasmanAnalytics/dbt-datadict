@@ -1,31 +1,38 @@
-# dbt datadict
+[![tasman_logo][tasman_wordmark_black]][tasman_website_light_mode]
+[![tasman_logo][tasman_wordmark_cream]][tasman_website_dark_mode]
 
-dbt-datadict is a command-line tool that provides helpful tools to improve the process of managing column-level documentation across a large dbt project. It has the following key features:
+---
 
-1. It works alongside dbt-labs/codegen to automate the model documentation creation process. By reviewing the models it can find, it uses codegen to identify the full column list and will merge this with what is already existing ikn the project, adding any missing models to a given file path.
-2. It will analyse your existing dbt project for model yaml files, and for each column summarise the different column description versions, and models that the column appears in. Once set in the dictionary, it will automatically apply descriptions for all columns with the same name (or alias) across the project.
+*We are the boutique analytics consultancy that turns disorganised data into real business value. [Get in touch](https://tasman.ai/contact/) to learn more about how Tasman can help solve your organisations data challenges.*
 
-## **Installation**
+# dbt-datadict
 
-1. Install dbt data dictionary using
+dbt-datadict is a CLI tool that provides helpful functions to improve the speed and efficiency of managing column-level documentation across large dbt projects.
+
+**Key Features:**
+
+1. Rapid creation of model yaml files, leveraging dbt-labs/codegen 💥 (no more copy/pasting from the terminal 🙌)
+2. In-place updates to model yaml on schema changes 🧙
+3. Consolidatation of column descriptions into a data dictionary 📓
+4. Keeps column descriptions in sync with a single command 🔃
+
+## Installation ⏬
+
+Install dbt-datadict using
     
     ```bash
     $ python -m pip install dbt-datadict
     ```
-2. Start using the `datadict` CLI command.
-    ```bash
-    $ datadict --help
-    ```
 
-## Getting Started
+## Getting Started 🚀
 
-[Full user guide](docs/user_guide.md)
+[Full user guide](docs/user_guide.md) 🧑‍🏫
 
 ### Command: `generate`
 
 This command generates yaml files using the dbt-codegen package. Where it finds existing model yaml files, it will merge the full column lists. For missing models, it will create a separate model yaml file using the name provided.
 
-> **Warning**
+> **Warning ⚠️**  
 > This command will only run in a valid dbt project with the dbt-labs/codegen dbt package installed.
 
 #### **Usage:**
@@ -54,9 +61,7 @@ $ datadict apply [-D <DIRECTORY>] [-d <DICTIONARY>]
 - **`-D, --directory <DIRECTORY>`**: Directory to search for fields and apply the dictionary to. Default: 'models/'.
 - **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
 
-
-
-## **Important Note**
+## ⚠️ Important Note ⚠️
 
 It is highly recommend to only use this library in a version controlled environment, such as git. Additionally, please ensure that you have backed up your model YAML files and data dictionary before applying any updates. The application modifies files in place and does not create backups automatically.
 
@@ -68,3 +73,8 @@ We encourage you to contribute to dbt Data Dictionary! Please check out our [Con
 ## License
 
 dbt Data Dictionary is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
+
+[tasman_website_dark_mode]: https://tasman.ai#gh-dark-mode-only
+[tasman_website_light_mode]: https://tasman.ai#gh-light-mode-only
+[tasman_wordmark_cream]: https://raw.githubusercontent.com/TasmanAnalytics/.github/master/images/tasman_wordmark_cream_500.png#gh-dark-mode-only
+[tasman_wordmark_black]: https://raw.githubusercontent.com/TasmanAnalytics/.github/master/images/tasman_wordmark_black_500.png#gh-light-mode-only
