@@ -109,27 +109,28 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, 
     for file in existing_file_yamls:
         file_yaml = file["file_yaml"]
         path = file["file_path"]
-    try:
-        for model_num, model in enumerate(file_yaml["models"]):
-                for model_to_be_updated in models_to_be_updated:
-                    if model_to_be_updated["name"] == model["name"]:
-                        logging.info(f"Model {model['name']} is being checked...")
-                        combined_columns = combine_column_lists(
-                            model, model_to_be_updated
-                        )
-                        file_yaml["models"][model_num] = combined_columns["yaml"]
-                        updated = combined_columns["updated"]
-                        if updated:
-                            updated_count += 1
-                        else:
-                            logging.info(f"Model {model['name']} is correct")
 
-        if updated_count > 0:
-                datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
-    except Exception as error:
-        logging.error(
-            f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file. Error: {error}"
-        )
+        try:
+            for model_num, model in enumerate(file_yaml["models"]):
+                    for model_to_be_updated in models_to_be_updated:
+                        if model_to_be_updated["name"] == model["name"]:
+                            logging.info(f"Model {model['name']} is being checked...")
+                            combined_columns = combine_column_lists(
+                                model, model_to_be_updated
+                            )
+                            file_yaml["models"][model_num] = combined_columns["yaml"]
+                            updated = combined_columns["updated"]
+                            if updated:
+                                updated_count += 1
+                            else:
+                                logging.info(f"Model {model['name']} is correct")
+
+            if updated_count > 0:
+                    datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
+        except Exception as error:
+            logging.error(
+                f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file. Error: {error}"
+            )
 
 
 def add_missing_models(yaml_obj, path, models, sort):
