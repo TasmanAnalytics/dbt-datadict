@@ -1,6 +1,6 @@
 # Developing Locally
 
-1. Install package dependencies
+1. Install package dependencies, as well as the `dbt-datadict` package itself:
 
     ```bash
     $ poetry install
@@ -38,7 +38,7 @@
 6. To pull the package from Test PyPI, run the following command:
 
     ```bash
-    $ python -m pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadict==<version>  # Replace <version>
+    $ python -m pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadict==<version>
     ```
 
     > **Hint**
