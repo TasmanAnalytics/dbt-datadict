@@ -85,15 +85,16 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
 			    f"Added data_type '{column['data_type']}' to '{column['name']}' in model '{current_yml['name']}'"
 		    )
 
-    sort_order = ['name', 'data_type', 'description', 'tests']
+    sort_order = ['name', 'data_type', 'description', 'tests', 'data_tests', 'unit_tests', 'meta']
     
     for column in combined_yaml['columns']:
-        column['description'] = column.get('description', '')  
-        
-        if 'tests' in column:
-            column['tests'] = column['tests']
-        else:
-            column.pop('tests', None)
+        column['description'] = column.get('description', '')
+
+        for optional_columns in ['tests', 'data_tests', 'unit_tests', 'meta']:
+            if optional_columns in column:
+                column[optional_columns] = column[optional_columns]
+            else:
+                column.pop(optional_columns, None)
 
         column_sorted = {key: column[key] for key in sort_order if key in column}
         
