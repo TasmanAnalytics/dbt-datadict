@@ -26,7 +26,7 @@ Install dbt-datadict using
 
 ## Getting Started 🚀
 
-[Full user guide](docs/user_guide.md) 🧑‍🏫
+[Full user guide](https://github.com/TasmanAnalytics/dbt-datadict/blob/94b9bdbf53e12689627d79eebbc2ce6572db328a/docs/user_guide.md) 🧑‍🏫
 
 ### Command: `generate`
 
