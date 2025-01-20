@@ -53,7 +53,7 @@ def apply(dictionary, directory):
     "--unique-model-yaml",
     "unique_model_yaml",
     help="Creates one YAML for each model with the same name as the model",
-    default=False,
+    default=True,
 )
 @click.option(
     "--sort/--no-sort",
