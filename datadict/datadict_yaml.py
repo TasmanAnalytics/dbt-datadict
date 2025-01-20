@@ -173,7 +173,7 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
     model_dicts = [{
         'name': os.path.splitext(os.path.basename(file))[0],
         'model_path': file,
-        'expected_yml_path': file.replace('.sql', '.yml')
+        'expected_yml_path': '_' + file.replace('.sql', '.yml')
     } for file in model_file_list]
 
     existing_models = []
