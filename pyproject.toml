@@ -1,39 +1,38 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "dbt-datadict"
 version = "0.3.0"
 description = "Python CLI for automating the application of consistent field definitions to large multi-layered dbt projects."
-authors = ["tom <tom@tasman.ai>"]
+authors = [{name = "tom", email = "tom@tasman.ai"}]
 readme = "README.md"
-license = "GNU GENERAL PUBLIC LICENSE"
-homepage = "https://github.com/TasmanAnalytics/dbt-datadictionary"
-packages = [
-    { include = "datadict" },
-]
-exclude = [
-    "tests",
-    "Makefile", 
-    "README.md",
-    "pyproject.toml",
-    "poetry.lock"
-]
+license = "GPL-3.0-only"
+urls = {homepage = "https://github.com/TasmanAnalytics/dbt-datadictionary"}
+requires-python = ">=3.10,<4.0"
 classifiers = [
-    "Development Status :: 3 - Alpha",  
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3.8",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "ruamel.yaml>=0.17.35,<0.18",
+    "click>=7.0,<8.1.4",
+]
+scripts = {datadict = "datadict:cli"}
 
-[tool.poetry.scripts]
-datadict = "datadict:cli"
+[dependency-groups]
+dev = [
+    "black>=23.9.1,<24.0.0",
+    "isort>=5.12.0,<6.0.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-"ruamel.yaml" = "^0.17.35"
-click = ">=7.0,<8.1.4"
+[tool.setuptools]
+packages = ["datadict"]
 
-[tool.poetry.group.dev.dependencies]
-black = "^23.9.1"
-isort = "^5.12.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
