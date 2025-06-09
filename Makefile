@@ -14,6 +14,9 @@ publish-test: build ##& Publish the datadict Python package to Test PyPI
 build: uv ## Build the datadict Python package
 	rm -rf dist/ && uv build
 
+test: uv ## Test the datadict Python package
+	uv run pytest -v
+
 clean: ## Uninstall the dbt virtual environment
 	@echo Uninstalling the uv virtual environment.
 	rm -rf .venv
