@@ -45,7 +45,7 @@ jobs:
         name: python-package-distributions
         path: dist/
     - name: Publish distribution 📦 to PyPI
-      run: uv publish --trusted-publishing always
+      run: uv publish --token ${{ secrets.PYPI_TOKEN }}
 
   publish-to-testpypi:
     name: Publish distro to TestPyPI 🐍 📦
@@ -65,4 +65,4 @@ jobs:
         name: python-package-distributions
         path: dist/
     - name: Publish distribution 📦 to TestPyPI
-      run: uv publish --trusted-publishing always --index testpypi
+      run: uv publish --index testpypi --token ${{ secrets.PYPI_TOKEN }}
