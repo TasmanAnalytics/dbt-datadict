@@ -1,22 +1,22 @@
 #!/make
-.PHONY: clean poetry
+.PHONY: clean uv
 .DEFAULT_GOAL := help
 
-poetry: ## Install poetry
-	@if ! command -v poetry; then\
-		curl -sSL https://install.python-poetry.org | python3 -;\
+uv: ## Install uv
+	@if ! command -v uv; then\
+		curl -LsSf https://astral.sh/uv/install.sh | sh;\
 	fi
-	poetry install
+	uv sync --all-groups
 
 publish-test: build ##& Publish the datadict Python package to Test PyPI
-	poetry publish --repository testpypi
+	uv publish --index testpypi
 
-build: poetry ## Build the datadict Python package
-	poetry build
+build: uv ## Build the datadict Python package
+	uv build
 
 clean: ## Uninstall the dbt virtual environment
-	@echo Uninstalling the Poetry virtual environment.
-	poetry env remove python || rm -rf .venv
+	@echo Uninstalling the uv virtual environment.
+	rm -rf .venv
 
-help:	## Show targets and comments (must have ##)
+help: ## Show targets and comments (must have ##)
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'

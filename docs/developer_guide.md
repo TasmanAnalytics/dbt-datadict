@@ -3,39 +3,32 @@
 1. Install package dependencies, as well as the `dbt-datadict` package itself:
 
     ```bash
-    $ poetry install
+    $ uv sync --all-groups
     ```
 
 2. To build the package locally, run the following command:
 
     ```bash
-    $ poetry build
+    $ uv build
     ```
 
-3. To configure `poetry` to publish the package to Test PyPI, run the following:
+3. To publish the package to Test PyPI, run the following command:
 
     ```bash
     $ export TEST_PYPI_TOKEN=<token>  # Replace <token> with your Test PyPI token
-    $ poetry config pypi-token.testpypi $TEST_PYPI_TOKEN
-    $ poetry config repositories.testpypi https://test.pypi.org/legacy/
+    $ uv publish --index testpypi --token $TEST_PYPI_TOKEN
     ```
 
-4. To publish the package to Test PyPI, run the following command:
+4. To bump the version of the package, run the following command:
 
     ```bash
-    $ poetry publish --repository testpypi
-    ```
-
-5. To bump the version of the package, run the following command:
-
-    ```bash
-    $ poetry version <version>  # Replace <version> with the new version number
+    $ uv version <version>  # Replace <version> with the new version number
     ```
 
     > **Hint**
-    > Run `poetry version --help` to see Poetry's options for automatic SemVer version bumping.
+    > Run `uv version --help` to see uv's options for automatic SemVer version bumping.
 
-6. To pull the package from Test PyPI, run the following command:
+5. To pull the package from Test PyPI, run the following command:
 
     ```bash
     $ python -m pip install --extra-index-url https://test.pypi.org/simple/ dbt-datadict==<version>
