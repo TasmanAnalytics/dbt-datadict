@@ -23,4 +23,4 @@ jobs:
         run: uv sync --no-default-groups
 
       - name: ✅ Run unit tests
-        run: uv run python -m test.test
+        run: uv run python -m unittest discover --start-directory test/
