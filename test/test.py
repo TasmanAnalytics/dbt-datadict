@@ -532,14 +532,14 @@ class TestYaml(unittest.TestCase):
         current_yml = {
             "name": "Model1",
             "columns": [
-                {"name": "Column1", "type": "int"},
-                {"name": "Column2", "type": "str"},
+                {"name": "Column1", "data_type": "int"},
+                {"name": "Column2", "data_type": "str"},
             ],
         }
         expected_yml = {
             "columns": [
-                {"name": "Column1", "type": "int"},
-                {"name": "Column2", "type": "str"},
+                {"name": "Column1", "data_type": "int"},
+                {"name": "Column2", "data_type": "str"},
             ]
         }
         result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
@@ -551,31 +551,31 @@ class TestYaml(unittest.TestCase):
         current_yml = {
             "name": "Model1",
             "columns": [
-                {"name": "Column1", "type": "int"},
+                {"name": "Column1", "data_type": "int"},
             ],
         }
         expected_yml = {
             "columns": [
-                {"name": "Column1", "type": "int"},
-                {"name": "Column2", "type": "str"},
+                {"name": "Column1", "data_type": "int", "description": ""},
+                {"name": "Column2", "data_type": "str", "description": ""},
             ]
         }
         result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
         self.assertEqual(result["updated"], True)
-        self.assertIn({"name": "Column2", "type": "str"}, result["yaml"]["columns"])
+        self.assertIn({"name": "Column2", "data_type": "str", "description": ""}, result["yaml"]["columns"])
 
     def test_combine_column_lists_additional_columns(self):
         # Test when there are additional columns
         current_yml = {
             "name": "Model1",
             "columns": [
-                {"name": "Column1", "type": "int"},
-                {"name": "Column2", "type": "str"},
+                {"name": "Column1", "data_type": "int"},
+                {"name": "Column2", "data_type": "str"},
             ],
         }
         expected_yml = {
             "name": "Model1",
-            "columns": [{"name": "Column1", "type": "int"}],
+            "columns": [{"name": "Column1", "data_type": "int", "description": ""}],
         }
         result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
         self.assertEqual(result["updated"], True)
@@ -586,12 +586,12 @@ class TestYaml(unittest.TestCase):
         current_yml = {"name": "Model1"}
         expected_yml = {
             "columns": [
-                {"name": "Column1", "type": "int"},
+                {"name": "Column1", "data_type": "int", "description": ""},
             ]
         }
         result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
         self.assertEqual(result["updated"], True)
-        self.assertIn({"name": "Column1", "type": "int"}, result["yaml"]["columns"])
+        self.assertIn({"name": "Column1", "data_type": "int", "description": ""}, result["yaml"]["columns"])
 
 
 if __name__ == "__main__":
