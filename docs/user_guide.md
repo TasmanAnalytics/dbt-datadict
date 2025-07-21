@@ -1,54 +1,61 @@
-# How to use dbt Data Dictionary
+# User guide
 
-## Command-Line Interface (CLI) Usage
+## Usage
 
-The Data Dictionary Application provides a command-line interface (CLI) that allows you to interact with the library easily.
+The `datadict` command has two subcommands:
 
-### Command: `generate`
+- `generate`: Generates model YAML files using the [dbt-codegen](https://github.com/dbt-labs/dbt-codegen) package.
+- `apply`: Applies data dictionary updates to existing model YAML files.
 
-This command generates yaml files using the dbt-codegen package. Where it finds existing model yaml files, it will merge the full column lists. For missing models, it will create a separate model yaml file using the name provided.
-
-> **Warning**
-> This command will only run in a valid dbt project with the dbt-labs/codegen dbt package installed.
-
-#### **Usage:**
-
-```bash
-$ datadict generate [-D <DIRECTORY>] [-f <NAME>] 
+```shell
+datadict generate
+datadict apply
 ```
 
-#### **Options:**
+This tool maintains a "data dictionary" file, which is a YAML file that contains the consolidated column descriptions across all models in the dbt project. By default, this file is named `datadictionary.yml` and is located in the root of the dbt project.
 
-- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
-- **`-f, --file <NAME>`**: The file to store any new models in.
-- **`--sort`**: Triggers the generated YAML files to be sorted alphabetically (on by default).
-- **`--unique-model-yaml`**: Creates one YAML for each model with the same name as the model.
+## The `generate` command
 
-#### **Generation Process**
-1. dbt installation is validated by running `dbt debug` and `dbt deps`
-2. The supplied directory is searched recursively for YAML model files (ending with .yml or .yaml).
-3. The supplied directory is searched for model files (ending with .sql)
-4. dbt-labs/codegen is used to obtain the full column lists for each of the models that we found in the directory.
+The `generate` command generates YAML files using the [dbt-codegen](https://github.com/dbt-labs/dbt-codegen) package. Where it finds existing model YAML files, it will merge the full column lists. For missing models, it will create a separate model YAML file using the name provided.
+
+> [!WARNING]
+>
+> This command will only run in a valid dbt project with the [dbt-codegen](https://github.com/dbt-labs/dbt-codegen) dbt package installed.
+
+### Options
+
+```shell
+datadict generate --help
+```
+
+- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: `models/`.
+- `-f, --file <NAME>`: The file to store any new models in.
+- `--sort`/`--no-sort`: Triggers the generated YAML files to be sorted alphabetically (on by default).
+- `--unique-model-yaml`: Creates one YAML for each model with the same name as the model.
+
+### Generation process
+
+1. dbt installation is validated by running `dbt debug` and `dbt deps`.
+2. The supplied directory is searched recursively for YAML model files (ending with `.yml` or `.yaml`).
+3. The supplied directory is searched for model files (ending with `.sql`).
+4. [dbt-codegen](https://github.com/dbt-labs/dbt-codegen) is used to obtain the full column lists for each of the models that we found in the directory.
 5. Models in existing YAML model files are synchronised with the expected column list.
-6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`
+6. Models that aren't in any existing YAML files are added to the file path supplied in `--file`.
 
-### Command: **`apply`**
+## The `apply` command
 
-This command applies data dictionary updates to all model YAML files in the specified directory and its subdirectories.
+The `apply` command applies data dictionary updates to all model YAML files in the specified directory and its subdirectories.
 
-#### **Usage:**
+### Options
 
-```bash
-$ datadict apply [-d <DICTIONARY>] [-D <DIRECTORY>]
+```shell
+datadict apply --help
 ```
 
-#### **Options:**
+- `-d, --dictionary <DICTIONARY>`: Location of the dictionary file. Default: `datadictionary.yml`.
+- `-D, --directory <DIRECTORY>`: Directory to apply the dictionary. Default: `models/`.
 
-- **`-d, --dictionary <DICTIONARY>`**: Location of the dictionary file. Default: 'datadictionary.yml'.
-- **`-D, --directory <DIRECTORY>`**: Directory to apply the dictionary. Default: 'models/'.
-
-
-# Examples
+## Examples
 
 Given the following dbt model yaml file example:
 

@@ -1,4 +1,4 @@
-# How to contribute to dbt-datadict?
+# Contributing
 
 ## Did you find a bug?
 
@@ -12,9 +12,4 @@
 
 ## How do I configure a local environment?
 
-- Please see our [developer guide](docs/developer_guide.md)
-
----
-
-Thanks, 
-Tasman Analytics Team
+- Please see our [developer guide](developer_guide.md)
