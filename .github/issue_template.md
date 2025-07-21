@@ -1,12 +1,19 @@
-### Steps to reproduce
+## Steps to reproduce
 
-### Expected behavior
+<!-- Tell us how to reproduce the bug -->
+
+## Expected behavior
+
 <!-- Tell us what should happen -->
 
-### Actual behavior
+## Actual behavior
+
 <!-- Tell us what happens instead -->
 
-### System configuration
-**Python version**:
+## System configuration
 
-**dbt-datadict version**:
+- **Python version**: 
+- **dbt-datadict version**:
+
+<!-- `python --version` -->
+<!-- `pip show dbt-datadict` -->

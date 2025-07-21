@@ -5,8 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dbt-datadict"
 version = "0.3.2"
-description = "Python CLI for automating the application of consistent field definitions to large multi-layered dbt projects."
-authors = [{name = "tom", email = "tom@tasman.ai"}]
+description = "Tool for managing consistent column descriptions across a dbt project."
+authors = [
+    {name = "tom", email = "tom@tasman.ai"}
+]
 readme = "README.md"
 license = "GPL-3.0-only"
 urls = {homepage = "https://github.com/TasmanAnalytics/dbt-datadictionary"}
