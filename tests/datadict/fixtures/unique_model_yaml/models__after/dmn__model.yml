@@ -1,0 +1,14 @@
+version: 2
+models:
+  - name: dmn__model
+    description: ''
+    columns:
+      - name: column_1
+        data_type: int
+        description: ''
+      - name: column_2
+        data_type: varchar
+        description: ''
+      - name: column_3
+        data_type: boolean
+        description: ''

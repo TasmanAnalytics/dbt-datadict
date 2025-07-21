@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: stg__model_1
+    description: ""
+    columns:
+      - name: column_1
+        data_type: int
+        description: ""
+      - name: column_2
+        data_type: varchar
+        description: ""
+
+  - name: stg__model_2
+    description: ""
+    columns:
+      - name: column_1
+        data_type: int
+        description: ""
+      - name: column_3
+        data_type: boolean
+        description: ""
+
+  - name: int__model
+    description: ""
+    columns:
+      - name: column_1
+        data_type: int
+        description: ""
+      - name: column_2
+        data_type: varchar
+        description: ""
+      - name: column_3
+        data_type: boolean
+        description: ""
+
+  - name: dmn__model
+    description: ""
+    columns:
+      - name: column_1
+        data_type: int
+        description: ""
+      - name: column_2
+        data_type: varchar
+        description: ""
+      - name: column_3
+        data_type: boolean
+        description: ""

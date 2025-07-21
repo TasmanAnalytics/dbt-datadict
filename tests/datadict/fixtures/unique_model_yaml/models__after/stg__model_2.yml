@@ -1,0 +1,11 @@
+version: 2
+models:
+  - name: stg__model_2
+    description: ''
+    columns:
+      - name: column_1
+        data_type: int
+        description: ''
+      - name: column_3
+        data_type: boolean
+        description: ''
