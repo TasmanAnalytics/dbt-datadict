@@ -143,30 +143,28 @@ def test__models_can_be_generated_from_yaml_files__consolidated_model_yaml(
     monkeypatch.setattr(datadict_dbt, "validate_dbt", lambda: True)
     monkeypatch.setattr(datadict_dbt, "get_model_yaml", lambda _: generated_model_yaml)
 
-    directory = temp_dir
+    models = temp_dir
     shutil.copytree(
         src=FIXTURES / "consolidated_model_yaml/models__before",
-        dst=directory,
+        dst=models,
         ignore=shutil.ignore_patterns("*.sql"),
         dirs_exist_ok=True,
     )
 
     datadict_yaml.generate_model_yamls(
-        directory=str(directory),
+        directory=str(models),
         name="generated.yml",
         unique_model_yaml=False,
     )
 
-    schemas = list(_walk(directory))
+    schemas = list(_walk(models))
     assert len(schemas) == 4
 
-    # Usually you don't want to loop in tests, but I don't know the nicer
-    # way to do this 🤷
-    for schema in schemas:
-        assert (
-            _read(schema)
-            == _read(FIXTURES / f"consolidated_model_yaml/models__after/{schema.name}")
-        )
+    after = FIXTURES / "consolidated_model_yaml/models__after"
+    assert _read(models / "domain/domain.yml") == _read(after / "domain/domain.yml")
+    assert _read(models / "generated.yml") == _read(after / "generated.yml")
+    assert _read(models / "invalid.yml") == _read(after / "invalid.yml")
+    assert _read(models / "staging/staging.yml") == _read(after / "staging/staging.yml")
 
 
 def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
@@ -182,26 +180,24 @@ def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
     monkeypatch.setattr(datadict_dbt, "validate_dbt", lambda: True)
     monkeypatch.setattr(datadict_dbt, "get_model_yaml", lambda _: generated_model_yaml)
 
-    directory = temp_dir
+    models = temp_dir
     shutil.copytree(
         src=FIXTURES / "unique_model_yaml/models__before",
-        dst=directory,
+        dst=models,
         dirs_exist_ok=True,
     )
 
     datadict_yaml.generate_model_yamls(
-        directory=str(directory),
+        directory=str(models),
         name="does-not-apply-in-this-context.yml",
         unique_model_yaml=True,
     )
 
-    schemas = [f for f in _walk(directory) if f.suffix == ".yml"]
+    schemas = [f for f in _walk(models) if f.suffix == ".yml"]
     assert len(schemas) == 4
 
-    # Usually you don't want to loop in tests, but I don't know the nicer
-    # way to do this 🤷
-    for schema in schemas:
-        assert (
-            _read(schema)
-            == _read(FIXTURES / f"unique_model_yaml/models__after/{schema.name}")
-        )
+    after = FIXTURES / "unique_model_yaml/models__after"
+    assert _read(models / "domain/dmn__model.yml") == _read(after / "domain/dmn__model.yml")
+    assert _read(models / "intermediate/int__model.yml") == _read(after / "intermediate/int__model.yml")
+    assert _read(models / "staging/stg__model_1.yml") == _read(after / "staging/stg__model_1.yml")
+    assert _read(models / "staging/stg__model_2.yml") == _read(after / "staging/stg__model_2.yml")
