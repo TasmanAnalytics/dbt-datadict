@@ -47,5 +47,5 @@ explicit = true
 
 
 [tool.pytest.ini_options]
-addopts = "--cov=datadict --cov-fail-under=50"
+addopts = "--cov=datadict --cov-fail-under=75"
 testpaths = ["tests"]
