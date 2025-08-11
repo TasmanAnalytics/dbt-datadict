@@ -1,8 +1,8 @@
 import click
 
 from dbt_datadict import (
-    apply,
-    generate,
+    apply as apply_,
+    generate as generate_,
 )
 
 
@@ -32,7 +32,7 @@ def apply(dictionary, directory):
     dictionary file. Additionally, this command will review the dictionary file and apply updates back to the columns in
     the model files where possible.
     """
-    dictionary = apply.datadict(dictionary, detailed_logs=True)
+    dictionary = apply_.datadict(dictionary, detailed_logs=True)
     dictionary.apply_data_dictionary_to_path(directory)
     dictionary.collate_output_dictionary()
 
@@ -69,4 +69,4 @@ def generate(directory, file, unique_model_yaml, sort):
     and the model metadata is combined and written back to the existing files. For models missing from existing files,
     a new file is created in the directory with the given name and the metadata for the missing models is written to it.
     """
-    generate.generate_model_yamls(directory, file, unique_model_yaml, sort)
+    generate_.generate_model_yamls(directory, file, unique_model_yaml, sort)
