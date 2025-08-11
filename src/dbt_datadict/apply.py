@@ -3,7 +3,7 @@ import os
 
 import ruamel.yaml
 
-from datadict import datadict_helpers
+from dbt_datadict import utils
 
 
 class datadict:
@@ -489,7 +489,7 @@ class datadict:
         try:
             with open(self.dictionary_path, "w") as file:
                 self.yaml.dump(self.dictionary_yml, file)
-                datadict_helpers.add_spaces_between_cols(self.dictionary_path)
+                utils.add_spaces_between_cols(self.dictionary_path)
             self._log(f"Dictionary '{self.dictionary_path}' has been updated")
         except Exception as error:
             self._log(
@@ -514,12 +514,12 @@ class datadict:
             None
         """
         self._log(f"Checking file '{file_path}'...")
-        model_yaml = datadict_helpers.open_model_yml_file(self.yaml, file_path)
+        model_yaml = utils.open_model_yml_file(self.yaml, file_path)
         if model_yaml["status"] == "valid":
             try:
                 updates = self._iterate_dictionary_update(model_yaml["yaml"], file_path)
                 if updates["updated"]:
-                    datadict_helpers.output_model_file(
+                    utils.output_model_file(
                         self.yaml, file_path, updates["model_yaml"], False
                     )
                     self._log(f"File {file_path} has been updated")

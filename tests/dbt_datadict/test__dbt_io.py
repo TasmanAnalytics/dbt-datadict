@@ -2,7 +2,7 @@ import textwrap
 
 import pytest
 
-from datadict import datadict_dbt
+from dbt_datadict import dbt_io
 
 
 @pytest.mark.parametrize(
@@ -68,6 +68,6 @@ def test__bash_output_can_be_parsed(in_: str, expected: str):
     Bash output can be parsed to extract the YAML content.
     """
 
-    result = datadict_dbt.parse_bash_outputs(in_)
+    result = dbt_io.parse_bash_outputs(in_)
 
     assert result == expected

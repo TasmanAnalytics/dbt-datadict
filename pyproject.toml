@@ -22,7 +22,7 @@ dependencies = [
     "ruamel.yaml>=0.17.35,<0.18",
     "click>=7.0,<8.1.4",
 ]
-scripts = {datadict = "datadict:cli"}
+scripts = {datadict = "dbt_datadict.__main__:cli"}
 
 [dependency-groups]
 dev = [
@@ -35,10 +35,6 @@ test = [
 ]
 
 
-[tool.setuptools]
-packages = ["datadict"]
-
-
 [[tool.uv.index]]
 name = "testpypi"
 url = "https://test.pypi.org/simple/"
@@ -47,5 +43,5 @@ explicit = true
 
 
 [tool.pytest.ini_options]
-addopts = "--cov=datadict --cov-fail-under=75"
+addopts = "--cov=dbt_datadict --cov-fail-under=75"
 testpaths = ["tests"]

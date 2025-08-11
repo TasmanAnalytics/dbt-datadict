@@ -3,7 +3,7 @@ import pathlib
 
 import ruamel.yaml
 
-from datadict import datadict_helpers
+from dbt_datadict import utils
 
 
 def test__valid_yaml_files_can_be_opened(
@@ -25,7 +25,7 @@ def test__valid_yaml_files_can_be_opened(
     }
     with open(model_yaml_file, "w") as file:
         yaml_obj.dump(model_yaml, file)
-    result = datadict_helpers.open_model_yml_file(yaml_obj, model_yaml_file)
+    result = utils.open_model_yml_file(yaml_obj, model_yaml_file)
 
     assert result["status"] == "valid"
     assert isinstance(result["yaml"], dict)
@@ -42,7 +42,7 @@ def test__invalid_yaml_files_return_invalid_status(
     invalid_model_yaml_file = os.path.join(temp_dir, "invalid_model_file.yml")
     with open(invalid_model_yaml_file, "w") as file:
         file.write("invalid_data:\n")
-    result = datadict_helpers.open_model_yml_file(
+    result = utils.open_model_yml_file(
         yaml_obj, invalid_model_yaml_file
     )
 
@@ -63,7 +63,7 @@ def test__models_can_be_validated_as_valid():
             }
         ]
     }
-    result = datadict_helpers.check_valid_model_file(valid_model_yaml)
+    result = utils.check_valid_model_file(valid_model_yaml)
 
     assert result
 
@@ -74,7 +74,7 @@ def test__models_can_be_validated_as_invalid():
     """
 
     invalid_model_yaml = {"invalid_data": "data"}
-    result = datadict_helpers.check_valid_model_file(invalid_model_yaml)
+    result = utils.check_valid_model_file(invalid_model_yaml)
 
     assert result is False
 
@@ -96,7 +96,7 @@ def test__model_yaml_files_can_be_output(
         ]
     }
     test_file_path = str(temp_dir / "test_output_model.yaml")
-    datadict_helpers.output_model_file(
+    utils.output_model_file(
         yaml_obj, test_file_path, model_yaml, False
     )
 
@@ -131,7 +131,7 @@ def test__dictionary_files_can_be_listed(
         file_path.touch(exist_ok=True)
         file_path.write_text("Sample YAML content")
 
-    yaml_files_list: list = datadict_helpers.list_directory_files(  # type: ignore
+    yaml_files_list: list = utils.list_directory_files(  # type: ignore
         str(temp_dir),
         extensions,
     )
@@ -190,7 +190,7 @@ def test__model_files_can_be_sorted():
             },
         ],
     }
-    sorted_output = datadict_helpers.sort_model_file(input_dict)
+    sorted_output = utils.sort_model_file(input_dict)
 
     expected_output = {
         "version": 2,
