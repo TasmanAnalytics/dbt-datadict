@@ -3,7 +3,10 @@ import os
 
 import ruamel.yaml
 
-from datadict import datadict_dbt, datadict_helpers
+from dbt_datadict import (
+    dbt_io,
+    utils,
+)
 
 
 def check_files_for_models(yaml_obj, files) -> dict:
@@ -11,7 +14,7 @@ def check_files_for_models(yaml_obj, files) -> dict:
         file_yamls = []
         model_list = []
         for file_path in files:
-            file_contents = datadict_helpers.open_model_yml_file(yaml_obj, file_path)
+            file_contents = utils.open_model_yml_file(yaml_obj, file_path)
             if file_contents["status"] == "valid":
                 try:
                     for model in file_contents["yaml"]["models"]:
@@ -52,7 +55,7 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
                 logging.warning(
                     f"Missing column '{column['name']}' to be added to model '{current_yml['name']}'"
                 )
-       
+
 	# Iterate through the existing columns and remove any that are not in the expected_yml
     columns_to_remove = []
     for existing_column in existing_columns:
@@ -73,7 +76,7 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
             logging.warning(
                 f"Column '{column['name']}' removed from model '{current_yml['name']}'"
             )
-    
+
 	# Add the data_type to any columns that are missing it & set empty description if missing
     data_types_dict = {column['name']: column['data_type'] for column in expected_yml.get("columns", [])}
 
@@ -86,7 +89,7 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
 		    )
 
     sort_order = ['name', 'data_type', 'description', 'tests', 'data_tests', 'unit_tests', 'meta']
-    
+
     for column in combined_yaml['columns']:
         column['description'] = column.get('description', '')
 
@@ -97,10 +100,10 @@ def combine_column_lists(current_yml, expected_yml) -> dict:
                 column.pop(optional_columns, None)
 
         column_sorted = {key: column[key] for key in sort_order if key in column}
-        
+
         column.clear()
         column.update(column_sorted)
-    
+
     return {"yaml": combined_yaml, "updated": updated}
 
 
@@ -127,7 +130,7 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, 
                                 logging.info(f"Model {model['name']} is correct")
 
             if updated_count > 0:
-                    datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
+                    utils.output_model_file(yaml_obj, path, file_yaml, sort)
         except Exception as error:
             logging.error(
                 f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file. Error: {error}"
@@ -136,13 +139,13 @@ def updated_existing_files(yaml_obj, existing_file_yamls, models_to_be_updated, 
 
 def add_missing_models(yaml_obj, path, models, sort):
     if os.path.isfile(path) and os.path.exists(path):
-        yaml = datadict_helpers.open_model_yml_file(yaml_obj, path)
+        yaml = utils.open_model_yml_file(yaml_obj, path)
         if yaml["status"] == "valid":
             logging.info(f"File '{path}' has been found and is a valid models file")
             updated = yaml["yaml"]
             if len(models) > 0:
                 updated["models"] = updated["models"] + models
-                datadict_helpers.output_model_file(yaml_obj, path, updated, sort)
+                utils.output_model_file(yaml_obj, path, updated, sort)
             else:
                 logging.info(f"No updates to apply to '{path}'")
         else:
@@ -152,11 +155,11 @@ def add_missing_models(yaml_obj, path, models, sort):
     else:
         logging.info(f"File '{path}' doesn't exist and will be created.")
         file_yaml = {"version": 2, "models": models}
-        datadict_helpers.output_model_file(yaml_obj, path, file_yaml, sort)
-        
+        utils.output_model_file(yaml_obj, path, file_yaml, sort)
+
 def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing_model_list, models_to_be_added):
     """
-    Check for each model if the current YAML file matches the expected YAML file. The expected YAML 
+    Check for each model if the current YAML file matches the expected YAML file. The expected YAML
     file has the same name as the model file, but with a .yml extension.
 
     Parameters:
@@ -181,7 +184,7 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
     for item in existing_file_yamls:
         if "models" in item["file_yaml"]:
             existing_models.extend(item["file_yaml"]["models"])
-    
+
     combined_dicts = []
 
     for item1 in model_dicts:
@@ -189,13 +192,13 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
         item2 = next((item for item in models_to_be_added if item["name"] == name), {})
         item3 = next((item for item in existing_model_list if item["name"] == name), {})
         item4 = next((item for item in existing_models if item["name"] == name), {})
-        
+
         combined_dict = {**item1, **item2, **item3, **item4}
         combined_dicts.append(combined_dict)
 
     for dict in combined_dicts:
         dict.setdefault('file', None)
-    
+
     files_to_remove = set()
 
     for model in combined_dicts:
@@ -208,17 +211,17 @@ def yaml_for_each_model(yaml_obj, model_file_list, existing_file_yamls, existing
             model_to_write = {
                 'version': 2,
                 'models': [model_to_write]
-            } 
+            }
 
-            datadict_helpers.output_model_file(yaml_obj, model['expected_yml_path'], model_to_write, sort=False)
-            
+            utils.output_model_file(yaml_obj, model['expected_yml_path'], model_to_write, sort=False)
+
             if model['file'] is not None:
                 files_to_remove.add(model['file'])
                 logging.info(f"Model '{model['name']}' is being split into its own yaml file.")
 
         else:
             logging.info(f"Model '{model['name']}' is correct")
-            
+
     for file in files_to_remove:
         os.remove(file)
 
@@ -257,11 +260,11 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
         yaml_obj.width = 200
 
         # 1. Validate dbt is configured and usable
-        if not datadict_dbt.validate_dbt():
+        if not dbt_io.validate_dbt():
             return
 
         # 2. Evaluate the existing yaml files in the directory for model metadata
-        yaml_file_list = datadict_helpers.list_directory_files(
+        yaml_file_list = utils.list_directory_files(
             directory, [".yml", ".yaml"]
         )
         if len(yaml_file_list) == 0:
@@ -271,9 +274,9 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
         existing_file_yamls = existing_files["file_yamls"]
 
         # 3. Get the full column list for every model in the directory
-        model_file_list = datadict_helpers.list_directory_files(directory, [".sql"])
+        model_file_list = utils.list_directory_files(directory, [".sql"])
         model_names = [os.path.basename(file).split(".")[0] for file in model_file_list]
-        model_column_list = datadict_dbt.get_model_yaml(model_names)
+        model_column_list = dbt_io.get_model_yaml(model_names)
 
         # 4. Split out the models in existing files from models missing from existing files.
         models_to_be_updated = []
@@ -288,7 +291,7 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
             else:
                 models_to_be_added.append(model_column_list["models"][model_num])
 
-        # 5. For models in existing files, combine the column lists and write back to the existing file 
+        # 5. For models in existing files, combine the column lists and write back to the existing file
         if len(models_to_be_updated) > 0:
             logging.info(f"There are {len(models_to_be_updated)} models to be checked")
             updated_existing_files(

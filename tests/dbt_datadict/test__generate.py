@@ -5,7 +5,10 @@ from typing import Generator
 import pytest
 import ruamel.yaml
 
-from datadict import datadict_dbt, datadict_yaml
+from dbt_datadict import (
+    dbt_io,
+    generate,
+)
 
 HERE = pathlib.Path(__file__).parent
 FIXTURES = HERE / "fixtures"
@@ -43,7 +46,7 @@ def test__column_lists_can_be_combined_with_no_missing_columns():
             {"name": "Column2", "data_type": "str"},
         ]
     }
-    result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+    result = generate.combine_column_lists(current_yml, expected_yml)
 
     assert result["updated"] is False
     assert result["yaml"] == current_yml
@@ -66,7 +69,7 @@ def test__column_lists_can_be_combined_when_there_are_missing_columns():
             {"name": "Column2", "data_type": "str"},
         ]
     }
-    result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+    result = generate.combine_column_lists(current_yml, expected_yml)
 
     assert result["updated"] is True
     assert {"name": "Column2", "data_type": "str", "description": ""} in result["yaml"]["columns"]
@@ -90,7 +93,7 @@ def test__column_lists_can_be_combined_when_there_are_additional_columns():
             {"name": "Column1", "data_type": "int", "description": ""},
         ],
     }
-    result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+    result = generate.combine_column_lists(current_yml, expected_yml)
 
     assert result["updated"] is True
     assert result["yaml"] == expected_yml
@@ -107,7 +110,7 @@ def test__column_lists_can_be_combined_with_empty_model():
             {"name": "Column1", "data_type": "int"},
         ]
     }
-    result = datadict_yaml.combine_column_lists(current_yml, expected_yml)
+    result = generate.combine_column_lists(current_yml, expected_yml)
 
     assert result["updated"] is True
     assert {"name": "Column1", "data_type": "int", "description": ""} in result["yaml"]["columns"]
@@ -140,8 +143,8 @@ def test__models_can_be_generated_from_yaml_files__consolidated_model_yaml(
     Model schemas can be generated into consolidated YAML files.
     """
 
-    monkeypatch.setattr(datadict_dbt, "validate_dbt", lambda: True)
-    monkeypatch.setattr(datadict_dbt, "get_model_yaml", lambda _: generated_model_yaml)
+    monkeypatch.setattr(dbt_io, "validate_dbt", lambda: True)
+    monkeypatch.setattr(dbt_io, "get_model_yaml", lambda _: generated_model_yaml)
 
     models = temp_dir
     shutil.copytree(
@@ -151,7 +154,7 @@ def test__models_can_be_generated_from_yaml_files__consolidated_model_yaml(
         dirs_exist_ok=True,
     )
 
-    datadict_yaml.generate_model_yamls(
+    generate.generate_model_yamls(
         directory=str(models),
         name="generated.yml",
         unique_model_yaml=False,
@@ -177,8 +180,8 @@ def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
     Model schemas can be generated into individual YAML files.
     """
 
-    monkeypatch.setattr(datadict_dbt, "validate_dbt", lambda: True)
-    monkeypatch.setattr(datadict_dbt, "get_model_yaml", lambda _: generated_model_yaml)
+    monkeypatch.setattr(dbt_io, "validate_dbt", lambda: True)
+    monkeypatch.setattr(dbt_io, "get_model_yaml", lambda _: generated_model_yaml)
 
     models = temp_dir
     shutil.copytree(
@@ -187,7 +190,7 @@ def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
         dirs_exist_ok=True,
     )
 
-    datadict_yaml.generate_model_yamls(
+    generate.generate_model_yamls(
         directory=str(models),
         name="does-not-apply-in-this-context.yml",
         unique_model_yaml=True,

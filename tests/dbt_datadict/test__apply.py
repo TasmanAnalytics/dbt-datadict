@@ -3,7 +3,7 @@ import pathlib
 
 import pytest
 
-import datadict
+from dbt_datadict.apply import datadict
 
 
 @pytest.fixture(scope="function")
@@ -19,15 +19,15 @@ def dictionary_file(temp_dir: pathlib.Path) -> pathlib.Path:
 
 
 @pytest.fixture(scope="function")
-def datadict_instance(dictionary_file: pathlib.Path) -> datadict.datadict:
+def datadict_instance(dictionary_file: pathlib.Path) -> datadict:
     """
     A DataDict instance in the temporary directory.
     """
 
-    return datadict.datadict(str(dictionary_file))
+    return datadict(str(dictionary_file))
 
 
-def test__dictionary_can_be_loaded(datadict_instance: datadict.datadict):
+def test__dictionary_can_be_loaded(datadict_instance: datadict):
     """
     A dictionary can be loaded correctly.
     """
@@ -39,7 +39,7 @@ def test__dictionary_can_be_loaded(datadict_instance: datadict.datadict):
 
 def test__dictionary_cannot_be_loaded_if_not_exists(
     temp_dir: pathlib.Path,
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     A dictionary can be loaded correctly.
@@ -54,7 +54,7 @@ def test__dictionary_cannot_be_loaded_if_not_exists(
 
 def test__dictionary_can_be_created(
     temp_dir: pathlib.Path,
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     A new dictionary can be created.
@@ -68,7 +68,7 @@ def test__dictionary_can_be_created(
     assert new_dict_file.exists()
 
 
-def test__dictionary_can_be_updated(datadict_instance: datadict.datadict):
+def test__dictionary_can_be_updated(datadict_instance: datadict):
     """
     A dictionary can be updated with new fields.
     """
@@ -104,7 +104,7 @@ def test__dictionary_can_be_updated(datadict_instance: datadict.datadict):
     assert formatted_yaml == expected
 
 
-def test__dictionary_can_be_parsed_without_aliases(datadict_instance: datadict.datadict):
+def test__dictionary_can_be_parsed_without_aliases(datadict_instance: datadict):
     """
     A dictionary can be parsed correctly without aliases.
     """
@@ -115,7 +115,7 @@ def test__dictionary_can_be_parsed_without_aliases(datadict_instance: datadict.d
     assert result == ["field1", "field2"]
 
 
-def test__dictionary_can_be_parsed_with_aliases(datadict_instance: datadict.datadict):
+def test__dictionary_can_be_parsed_with_aliases(datadict_instance: datadict):
     """
     A dictionary can be parsed correctly with aliases.
     """
@@ -131,7 +131,7 @@ def test__dictionary_can_be_parsed_with_aliases(datadict_instance: datadict.data
     assert result == ["field1", "f1", "alias1", "field2"]
 
 
-def test__dictionary_items_can_be_inserted(datadict_instance: datadict.datadict):
+def test__dictionary_items_can_be_inserted(datadict_instance: datadict):
     """
     A dictionary item can be inserted.
     """
@@ -145,7 +145,7 @@ def test__dictionary_items_can_be_inserted(datadict_instance: datadict.datadict)
 
 
 def test__existing_fields_with_descriptions_can_be_updated(
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     Existing dictionary fields with descriptions can be updated.
@@ -168,7 +168,7 @@ def test__existing_fields_with_descriptions_can_be_updated(
 
 
 def test__existing_fields_without_descriptions_can_be_updated(
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     Existing dictionary fields without descriptions can be updated.
@@ -190,7 +190,7 @@ def test__existing_fields_without_descriptions_can_be_updated(
 
 
 def test__dictionary_can_be_iterated_with_updates(
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     Dictionary updates can be applied iteratively.
@@ -216,7 +216,7 @@ def test__dictionary_can_be_iterated_with_updates(
 
 
 def test__dictionary_can_be_iterated_without_updates(
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     Dictionary updates can be skipped iteratively.
@@ -242,7 +242,7 @@ def test__dictionary_can_be_iterated_without_updates(
 
 
 def test__dictionary_metadata_can_be_collated(
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     Metadata from existing fields can be collated.
@@ -270,7 +270,7 @@ def test__dictionary_metadata_can_be_collated(
 
 def test__dictionary_can_be_applied_to_a_model(
     temp_dir: pathlib.Path,
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     A data dictionary can be applied to a model YAML file.
@@ -308,7 +308,7 @@ def test__dictionary_can_be_applied_to_a_model(
 
 def test__dictionary_can_be_applied_to_multiple_models(
     temp_dir: pathlib.Path,
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     A data dictionary can be applied to multiple model YAML files.
@@ -365,7 +365,7 @@ def test__dictionary_can_be_applied_to_multiple_models(
 
 
 def test__missing_fields_can_be_collated(
-    datadict_instance: datadict.datadict,
+    datadict_instance: datadict,
 ):
     """
     Missing dictionary fields can be collated.
