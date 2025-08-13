@@ -12,7 +12,7 @@
 
 ## System configuration
 
-- **Python version**: 
+- **Python version**:
 - **dbt-datadict version**:
 
 <!-- `python --version` -->

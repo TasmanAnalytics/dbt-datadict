@@ -40,7 +40,6 @@ from dbt_datadict import dbt_io
                 )
             ),
         ),
-
         # other cases
         ("", ""),
         ("foo bar", ""),
@@ -53,7 +52,7 @@ from dbt_datadict import dbt_io
                 12:34:58  Found 4 models, 1 operation, 8 data tests, 123 macros
                 22:02:07  Encountered an error while running operation: Compilation Error
                   Macro 'macro.codegen.generate_model_yaml' (macros/generate_model_yaml.sql) depends on a node named 'foo' which was not found
-                  
+
                   > in macro default__generate_model_yaml (macros/generate_model_yaml.sql)
                   > called by macro generate_model_yaml (macros/generate_model_yaml.sql)
                   > called by <Unknown>
@@ -61,7 +60,7 @@ from dbt_datadict import dbt_io
             ),
             "",
         ),
-    ]
+    ],
 )
 def test__bash_output_can_be_parsed(in_: str, expected: str):
     """
