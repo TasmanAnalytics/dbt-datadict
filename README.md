@@ -10,14 +10,14 @@
 
 _We are the boutique analytics consultancy that turns disorganised data into real business value. [Get in touch](https://tasman.ai/contact/) to learn more about how Tasman can help solve your organisations data challenges._
 
-<div align="center">
+<span align="center">
 
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/dbt-datadict.svg)](https://pypi.python.org/pypi/dbt-datadict)
-[![tests](https://github.com/TasmanAnalytics/dbt-datadict/actions/workflows/tests.yaml/badge.svg)](https://github.com/TasmanAnalytics/dbt-datadict/actions/workflows/tests.yaml)
+<a href="https://github.com/astral-sh/uv"><img alt="uv" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" /></a>
+<a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/Python-3.10+-blue.svg" /></a>
+<a href="https://pypi.python.org/pypi/dbt-datadict"><img alt="PyPI" src="https://img.shields.io/pypi/v/dbt-datadict.svg" /></a>
+<a href="https://github.com/TasmanAnalytics/dbt-datadict/actions/workflows/tests.yaml"><img alt="tests" src="https://github.com/TasmanAnalytics/dbt-datadict/actions/workflows/tests.yaml/badge.svg" /></a>
 
-</div>
+</span>
 
 # dbt-datadict
 
@@ -72,4 +72,4 @@ We encourage you to contribute to this project! Please check out our [contributi
 
 ## License
 
-This tool is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
+This tool is released under the GNU General Public License v3.0. See [LICENSE](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/LICENSE) for details.

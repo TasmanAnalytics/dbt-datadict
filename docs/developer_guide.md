@@ -4,13 +4,14 @@
 
 This is a Python project which uses [uv](https://github.com/astral-sh/uv) for package management.
 
-The [Makefile](../Makefile) has several commands to help with development tasks, such as:
+The [Makefile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/Makefile) has several commands to help with development tasks, such as:
 
 ```shell
 make uv     # Install uv, sync dependencies, install pre-commit hooks
 make build  # Build the package locally
 make test   # Run the tests
 make lint   # Run the linters
+make docs   # Build and serve the documentation locally
 ```
 
 If you're using a system without `make`, you can run the equivalent commands directly:
@@ -25,11 +26,15 @@ pre-commit install
 uv build
 
 # Run the tests
-uv run pytest -v
+pytest -v
 
 # Run the linters
 pre-commit run --all-files --hook-stage pre-commit
 pre-commit run --all-files --hook-stage pre-push
+
+# Build and serve the documentation locally
+mkdocs build
+mkdocs serve
 ```
 
 ## Publishing a new release
@@ -38,7 +43,7 @@ To publish a new release of the package to PyPI, you'll need to increment the pr
 
 ### Incrementing the version
 
-Update the version in the [`pyproject.toml`](../pyproject.toml) file, where the version specified is in line with the [PyPA Version Specifiers specification](https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers). You can either manually update the version or use `uv` commands:
+Update the version in the [`pyproject.toml`](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/pyproject.toml) file, where the version specified is in line with the [PyPA Version Specifiers specification](https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers). You can either manually update the version or use `uv` commands:
 
 ```shell
 uv version <version>
@@ -92,4 +97,4 @@ Once you're happy with the changes, commit them to a feature branch and open a p
 
 When the changes are approved and merged into the `main` branch, create a new GitHub Release with a new tag `v<version>`. The release notes should include a summary of the changes made in the release.
 
-Creating the release will trigger a [GitHub Action](../.github/workflows/publish.yml) that will publish the package to PyPI. Validate that the package has been published by checking the GitHub Action and the [PyPI project page](https://pypi.org/p/dbt-datadict).
+Creating the release will trigger a [GitHub Action](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/.github/workflows/publish.yml) that will publish the package to PyPI. Validate that the package has been published by checking the GitHub Action and the [PyPI project page](https://pypi.org/p/dbt-datadict).

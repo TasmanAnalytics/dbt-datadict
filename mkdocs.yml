@@ -1,0 +1,49 @@
+---
+site_name: Data Dictionary
+repo_url: https://github.com/TasmanAnalytics/dbt-datadict/
+repo_name: TasmanAnalytics/dbt-datadict
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.footer
+    - navigation.tabs
+    - content.code.copy
+  palette:
+    - accent: default
+      primary: default
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - accent: default
+      primary: default
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - User Guide: user_guide.md
+  - Contributing: contributing.md
+  - Developer Guide: developer_guide.md
+
+markdown_extensions:
+  - admonition
+  - callouts # https://github.com/oprypin/markdown-callouts
+  - mdx_truly_sane_lists # Support nested lists
+  - pymdownx.details # Support collapsible sections with ???
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - { name: mermaid, class: mermaid }
+
+plugins:
+  - callouts # https://github.com/sondregronas/mkdocs-callouts
+  - search
+  - tags
+
+hooks:
+  - docs/hooks.py

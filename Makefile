@@ -15,6 +15,10 @@ publish-test: build ##& Publish the datadict Python package to Test PyPI
 build: uv ## Build the datadict Python package
 	rm -rf dist/ && uv build
 
+docs: uv ## Build the datadict Python package
+	mkdocs build
+	mkdocs serve
+
 test: uv ## Test the datadict Python package
 	uv run pytest -v
 
