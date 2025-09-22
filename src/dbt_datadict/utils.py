@@ -15,7 +15,7 @@ def add_spaces_between_cols(file):
     Returns:
         None
     """
-    with open(file, "rt") as f:
+    with open(file) as f:
         yaml = f.read()
     replaced = yaml.replace("dictionary:\n\n", "dictionary:\n").replace(
         "  - name:", "\n  - name:"
@@ -44,8 +44,7 @@ def open_model_yml_file(yaml_obj, file_path) -> dict:
         yaml = yaml_obj.load(file)
         if check_valid_model_file(yaml):
             return {"status": "valid", "yaml": yaml}
-        else:
-            return {"status": "invalid", "yaml": None}
+        return {"status": "invalid", "yaml": None}
 
 
 def check_valid_model_file(model_yaml) -> bool:
@@ -144,9 +143,13 @@ def sort_model_file(file_yaml) -> dict:
     # Sort the columns within each model alphabetically
     for model in file_yaml["models"]:
         if "columns" in model:
-            model["columns"] = sorted(model["columns"], key=lambda col: col["name"])
+            model["columns"] = sorted(
+                model["columns"], key=lambda col: col["name"]
+            )
 
     # Sort the models by name
-    file_yaml["models"] = sorted(file_yaml["models"], key=lambda model: model["name"])
+    file_yaml["models"] = sorted(
+        file_yaml["models"], key=lambda model: model["name"]
+    )
 
     return file_yaml

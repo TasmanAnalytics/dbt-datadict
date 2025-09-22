@@ -23,8 +23,7 @@ def parse_bash_outputs(input_string) -> str:
         version_two_index = input_string.find("version: 2")
         if version_two_index != -1:
             return input_string[version_two_index:]
-        else:
-            return ""
+        return ""
     except Exception as e:
         logging.error("There was an issue parsing the codegen outputs: " + e)
 
@@ -48,9 +47,11 @@ def validate_dbt() -> bool:
     try:
         # Check debug passes
         bash_command = ["dbt", "debug"]
-        result = subprocess.run(bash_command, capture_output=True).stdout.decode(
-            "UTF-8"
-        )
+        result = subprocess.run(  # noqa: S603
+            bash_command,
+            check=False,
+            capture_output=True,
+        ).stdout.decode("UTF-8")
         if "All checks passed!" not in result:
             logging.error(
                 "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
@@ -59,11 +60,15 @@ def validate_dbt() -> bool:
 
         # Check codegen installed
         bash_command = ["dbt", "deps"]
-        result = subprocess.run(bash_command, capture_output=True).stdout.decode(
-            "UTF-8"
-        )
+        result = subprocess.run(  # noqa: S603
+            bash_command,
+            check=False,
+            capture_output=True,
+        ).stdout.decode("UTF-8")
         if "dbt-labs/codegen" not in result:
-            logging.error("dbt-labs/codegen is required to perform this operation")
+            logging.error(
+                "dbt-labs/codegen is required to perform this operation"
+            )
             return False
 
         # Otherwise confirm valid
@@ -71,7 +76,9 @@ def validate_dbt() -> bool:
         return True
 
     except Exception as e:
-        logging.error("Issues encountered when attempting to validate dbt: " + e)
+        logging.error(
+            "Issues encountered when attempting to validate dbt: " + e
+        )
         return False
 
 
@@ -99,7 +106,9 @@ def get_model_yaml(model_names) -> str:
         To use this function, the dbt CLI must be installed and accessible in the environment where this function is run.
     """
     try:
-        logging.info(f'Generating base model for models: {", ".join(model_names)}')
+        logging.info(
+            f"Generating base model for models: {', '.join(model_names)}"
+        )
         args = {"model_names": model_names}
         bash_command = [
             "dbt",
@@ -108,9 +117,11 @@ def get_model_yaml(model_names) -> str:
             "--args",
             str(args),
         ]
-        result = subprocess.run(bash_command, capture_output=True).stdout.decode(
-            "UTF-8"
-        )
+        result = subprocess.run(  # noqa: S603
+            bash_command,
+            check=False,
+            capture_output=True,
+        ).stdout.decode("UTF-8")
         if "Compilation Error" in result:
             logging.error(
                 "Issues encountered when generating the model yaml: " + result

@@ -4,18 +4,13 @@
 
 This is a Python project which uses [uv](https://github.com/astral-sh/uv) for package management.
 
-After [installing uv](https://docs.astral.sh/uv/getting-started/installation/), create a virtual environment with the project's dependencies:
-
-```shell
-uv sync --all-groups
-```
-
 The [Makefile](../Makefile) has several commands to help with development tasks, such as:
 
 ```shell
-make uv     # Install uv and sync dependencies
+make uv     # Install uv, sync dependencies, install pre-commit hooks
 make build  # Build the package locally
 make test   # Run the tests
+make lint   # Run the linters
 ```
 
 If you're using a system without `make`, you can run the equivalent commands directly:
@@ -24,12 +19,17 @@ If you're using a system without `make`, you can run the equivalent commands dir
 # Install uv and sync dependencies (Windows)
 powershell -c "irm https://astral.sh/uv/install.ps1 | more"
 uv sync --all-groups
+pre-commit install
 
 # Build the package locally
 uv build
 
 # Run the tests
 uv run pytest -v
+
+# Run the linters
+pre-commit run --all-files --hook-stage pre-commit
+pre-commit run --all-files --hook-stage pre-push
 ```
 
 ## Publishing a new release

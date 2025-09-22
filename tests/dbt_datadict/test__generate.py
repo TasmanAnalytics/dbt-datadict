@@ -1,6 +1,6 @@
 import pathlib
 import shutil
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 import ruamel.yaml
@@ -21,11 +21,9 @@ def generated_model_yaml() -> dict:
     """
 
     yaml = ruamel.yaml.YAML(typ="unsafe", pure=True)
-    generated_yaml = FIXTURES / f"generated_model_yaml.yml"
+    generated_yaml = FIXTURES / "generated_model_yaml.yml"
 
-    return yaml.load(
-        generated_yaml.read_text(encoding="utf-8")
-    )
+    return yaml.load(generated_yaml.read_text(encoding="utf-8"))
 
 
 def test__column_lists_can_be_combined_with_no_missing_columns():
@@ -71,8 +69,10 @@ def test__column_lists_can_be_combined_when_there_are_missing_columns():
     }
     result = generate.combine_column_lists(current_yml, expected_yml)
 
+    expected = {"name": "Column2", "data_type": "str", "description": ""}
+
     assert result["updated"] is True
-    assert {"name": "Column2", "data_type": "str", "description": ""} in result["yaml"]["columns"]
+    assert expected in result["yaml"]["columns"]
 
 
 def test__column_lists_can_be_combined_when_there_are_additional_columns():
@@ -112,8 +112,10 @@ def test__column_lists_can_be_combined_with_empty_model():
     }
     result = generate.combine_column_lists(current_yml, expected_yml)
 
+    expected = {"name": "Column1", "data_type": "int", "description": ""}
+
     assert result["updated"] is True
-    assert {"name": "Column1", "data_type": "int", "description": ""} in result["yaml"]["columns"]
+    assert expected in result["yaml"]["columns"]
 
 
 def _read(file: pathlib.Path) -> str:
@@ -144,7 +146,11 @@ def test__models_can_be_generated_from_yaml_files__consolidated_model_yaml(
     """
 
     monkeypatch.setattr(dbt_io, "validate_dbt", lambda: True)
-    monkeypatch.setattr(dbt_io, "get_model_yaml", lambda _: generated_model_yaml)
+    monkeypatch.setattr(
+        dbt_io,
+        "get_model_yaml",
+        lambda _: generated_model_yaml,
+    )
 
     models = temp_dir
     shutil.copytree(
@@ -163,11 +169,13 @@ def test__models_can_be_generated_from_yaml_files__consolidated_model_yaml(
     schemas = list(_walk(models))
     assert len(schemas) == 4
 
+    # fmt: off
     after = FIXTURES / "consolidated_model_yaml/models__after"
     assert _read(models / "domain/domain.yml") == _read(after / "domain/domain.yml")
     assert _read(models / "generated.yml") == _read(after / "generated.yml")
     assert _read(models / "invalid.yml") == _read(after / "invalid.yml")
     assert _read(models / "staging/staging.yml") == _read(after / "staging/staging.yml")
+    # fmt: on
 
 
 def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
@@ -181,7 +189,11 @@ def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
     """
 
     monkeypatch.setattr(dbt_io, "validate_dbt", lambda: True)
-    monkeypatch.setattr(dbt_io, "get_model_yaml", lambda _: generated_model_yaml)
+    monkeypatch.setattr(
+        dbt_io,
+        "get_model_yaml",
+        lambda _: generated_model_yaml,
+    )
 
     models = temp_dir
     shutil.copytree(
@@ -200,7 +212,9 @@ def test__models_can_be_generated_from_yaml_files__unique_model_yaml(
     assert len(schemas) == 4
 
     after = FIXTURES / "unique_model_yaml/models__after"
+    # fmt: off
     assert _read(models / "domain/dmn__model.yml") == _read(after / "domain/dmn__model.yml")
     assert _read(models / "intermediate/int__model.yml") == _read(after / "intermediate/int__model.yml")
     assert _read(models / "staging/stg__model_1.yml") == _read(after / "staging/stg__model_1.yml")
     assert _read(models / "staging/stg__model_2.yml") == _read(after / "staging/stg__model_2.yml")
+    # fmt: on

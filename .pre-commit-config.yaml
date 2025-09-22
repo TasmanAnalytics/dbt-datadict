@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://json.schemastore.org/pre-commit-config.json
+---
+default_install_hook_types: ["pre-commit", "pre-push"]
+default_stages: ["pre-commit"]
+
+repos:
+  - repo: meta
+    hooks:
+      - id: identity
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: no-commit-to-branch
+        name: Don't allow commits to the main branch
+        args: ["--branch", "main"]
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+      - id: end-of-file-fixer
+        name: Ensure files end with a newline character
+      - id: mixed-line-ending
+        name: Align mixed line ending
+      - id: check-added-large-files
+        name: Check for large files
+      - id: check-json
+        name: Check JSON files are valid and parseable
+      - id: check-yaml
+        name: Check YAML files are valid and parseable
+      - id: check-toml
+        name: Check TOML files are valid and parseable
+      - id: check-ast
+        name: Validate Python
+      - id: detect-private-key
+        name: Check for the existence of private keys
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.8.2
+    hooks:
+      - id: uv-lock
+        name: Check that the lock file is up-to-date
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.5
+    hooks:
+      - id: ruff-check
+        name: Lint Python code
+        args: ["--fix"]
+      - id: ruff-format
+        name: Format Python code
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run unit tests
+        entry: pytest tests --quiet
+        stages: ["pre-push"]
+        language: system
+        pass_filenames: false
+        always_run: true
