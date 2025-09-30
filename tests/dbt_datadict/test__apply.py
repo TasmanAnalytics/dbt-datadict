@@ -27,29 +27,26 @@ def datadict_instance(dictionary_file: pathlib.Path) -> apply.DataDict:
     return apply.DataDict(str(dictionary_file))
 
 
-def test__dictionary_can_be_loaded(datadict_instance: apply.DataDict):
+def test__dictionary_can_be_loaded(dictionary_file: pathlib.Path):
     """
     A dictionary can be loaded correctly.
     """
 
-    loaded_dict = datadict_instance._load_dictionary()
+    loaded_dict = apply.load_or_create_dictionary(str(dictionary_file))
 
     assert isinstance(loaded_dict, dict)
 
 
 def test__dictionary_cannot_be_loaded_if_not_exists(
     temp_dir: pathlib.Path,
-    datadict_instance: apply.DataDict,
 ):
     """
     A dictionary can be loaded correctly.
     """
 
-    non_existent_dict_file = temp_dir / "non_existent_dict.yml"
-    datadict_instance.dictionary_path = str(non_existent_dict_file)
-
+    non_existent_dict_file = temp_dir / "some/nested/path/non_existent_dict.yml"
     with pytest.raises(FileNotFoundError):
-        datadict_instance._load_dictionary()
+        apply.load_or_create_dictionary(str(non_existent_dict_file))
 
 
 def test__dictionary_can_be_created(
@@ -61,8 +58,8 @@ def test__dictionary_can_be_created(
     """
 
     new_dict_file = temp_dir / "new_dict.yml"
-    datadict_instance.dictionary_path = str(new_dict_file)
-    created_dict = datadict_instance._create_dictinary()
+    new_dict_file.parent.mkdir(parents=True, exist_ok=True)
+    created_dict = apply.load_or_create_dictionary(str(new_dict_file))
 
     assert isinstance(created_dict, dict)
     assert new_dict_file.exists()

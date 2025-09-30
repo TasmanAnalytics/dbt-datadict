@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 from collections.abc import Hashable
 from typing import Any
 
@@ -19,6 +20,33 @@ def YAML() -> ruamel.yaml.YAML:  # noqa: N802
     yaml.width = 200
 
     return yaml
+
+
+def load_or_create_dictionary(dictionary_path: str) -> dict:
+    """
+    Return a dictionary from a specified path.
+
+    If the dictionary file does not exist, create a new dictionary with an
+    empty list, but only if the directory exists.
+    """
+
+    dict_path = pathlib.Path(dictionary_path)
+    if dict_path.exists() and dict_path.is_file():
+        logging.info(f"Loading dictionary from '{dict_path.absolute()}'")
+        return YAML().load(dict_path.read_text())
+
+    base_yaml = {"dictionary": []}
+    try:
+        YAML().dump(base_yaml, dict_path)
+        logging.info(
+            f"The file '{dict_path.absolute()}' was successfully created."
+        )
+        return base_yaml
+    except FileNotFoundError as err:
+        logging.error(
+            f"An error occurred while creating the file '{dict_path.absolute()}'. Check the directory exists."
+        )
+        raise err
 
 
 # TODO: This should be private
@@ -224,98 +252,12 @@ class DataDict:
 
         self.yaml = YAML()
         self.dictionary_path = dictionary_file_path
-        self.dictionary_yml = format_dictionary(self._try_load_dictionary())
+        self.dictionary_yml = format_dictionary(
+            load_or_create_dictionary(dictionary_file_path)
+        )
         self.dictionary_items = parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
-
-    def _try_load_dictionary(self) -> dict:
-        """
-        Tries to load a dictionary from a given path, and if it doesn't exist, creates a new dictionary.
-
-        This private method is used to load a dictionary from a specified path. If the file exists at the
-        given path, it loads the dictionary using the `_load_dictionary()` method. If the file doesn't
-        exist, it creates a new dictionary using the `_create_dictionary()` method.
-
-        Returns:
-            dict: A dictionary loaded from the specified path if the file exists, otherwise, a newly created dictionary.
-        """
-        if os.path.isfile(self.dictionary_path) and os.path.exists(
-            self.dictionary_path
-        ):
-            logging.info(
-                f"Dictionary {self.dictionary_path} found successfully."
-            )
-            return self._load_dictionary()
-
-        logging.info(
-            f"Dictionary {self.dictionary_path} not found. Creating dictionary..."
-        )
-        return self._create_dictinary()
-
-    def _load_dictionary(self) -> dict:
-        """
-        Loads a dictionary from a specified path.
-
-        This private method is used to read and load a dictionary from a given YAML file path. It attempts
-        to open the file, read its content, and parse it as a YAML formatted dictionary.
-
-        Returns:
-            dict: The dictionary loaded from the specified YAML file.
-
-        Raises:
-            FileNotFoundError: If the file at the specified path does not exist.
-            Exception: If an error occurs while loading the dictionary from the YAML file.
-        """
-        try:
-            with open(self.dictionary_path) as file:
-                logging.info(
-                    f"Dictionary file '{self.dictionary_path}' loaded successfully."
-                )
-                return self.yaml.load(file)
-        except FileNotFoundError:
-            logging.error(
-                f"Dictionary file '{self.dictionary_path}' not found."
-            )
-            raise
-        except Exception:
-            logging.error(
-                f"Error loading dictionary file '{self.dictionary_path}'"
-            )
-            raise
-
-    def _create_dictinary(self) -> dict:
-        """
-        Creates a new dictionary and saves it to a specified path.
-
-        This private method is used to create a new dictionary, serialize it as a YAML formatted data,
-        and save it to a given file path. The created dictionary will have an initial structure of
-        'base_yaml = {'dictionary': []}'.
-
-        Returns:
-            dict: The newly created dictionary.
-
-        Raises:
-            IOError: If an error occurs while creating or writing to the file.
-            SystemExit: If a critical error occurs during the creation process.
-        """
-        try:
-            with open(self.dictionary_path, "w") as file:
-                base_yaml = {"dictionary": []}
-                self.yaml.dump(base_yaml, file)
-                logging.info(
-                    f"The file '{self.dictionary_path}' was successfully created."
-                )
-            with open(self.dictionary_path) as file:
-                logging.info(
-                    f"Dictionary file '{self.dictionary_path}' loaded successfully."
-                )
-                return self.yaml.load(file)
-        except OSError:
-            logging.error(
-                f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists."
-            )
-            raise SystemExit
 
     def _update_existing_field(self, model_column, model, file_path) -> None:
         """
