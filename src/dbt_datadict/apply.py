@@ -247,6 +247,42 @@ def apply_data_dictionary_to_path(
         )
 
 
+def _update_existing_field(
+    existing_fields: list[dict],
+    model_column: dict,
+    model: dict,
+    file_path: str,
+) -> None:
+    """
+    Update the list of existing fields with model column details.
+
+    This method is used to update the list of existing fields by appending
+    information about a model column found in a model YAML file. The
+    function takes the 'model_column', 'model', and 'file_path' as inputs.
+    If the 'model_column' contains a 'description' key, it appends a
+    dictionary with the column name, description, model name, and file path
+    to the 'existing_fields' list. If the 'description' key is not present,
+    it appends a dictionary without the 'description' key.
+    """
+    if "description" in model_column:
+        existing_fields.append(
+            {
+                "name": model_column["name"],
+                "description": model_column["description"],
+                "model": model["name"],
+                "file": file_path,
+            }
+        )
+    else:
+        existing_fields.append(
+            {
+                "name": model_column["name"],
+                "model": model["name"],
+                "file": file_path,
+            }
+        )
+
+
 class DataDict:
     def __init__(self, dictionary_file_path) -> None:
         """
@@ -271,42 +307,6 @@ class DataDict:
         self.dictionary_items = _parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
-
-    def _update_existing_field(self, model_column, model, file_path) -> None:
-        """
-        Update the list of existing fields with model column details.
-
-        This private method is used to update the list of existing fields by appending information about a model
-        column found in a model YAML file. The function takes the 'model_column', 'model', and 'file_path' as inputs.
-        If the 'model_column' contains a 'description' key, it appends a dictionary with the column name, description,
-        model name, and file path to the 'existing_fields' list. If the 'description' key is not present, it appends a
-        dictionary without the 'description' key.
-
-        Parameters:
-            model_column (dict): The model column dictionary from the model YAML.
-            model (dict): The model dictionary representing the current model from the YAML file.
-            file_path (str): The file path of the YAML file containing the model.
-
-        Returns:
-            None
-        """
-        if "description" in model_column:
-            self.existing_fields.append(
-                {
-                    "name": model_column["name"],
-                    "description": model_column["description"],
-                    "model": model["name"],
-                    "file": file_path,
-                }
-            )
-        else:
-            self.existing_fields.append(
-                {
-                    "name": model_column["name"],
-                    "model": model["name"],
-                    "file": file_path,
-                }
-            )
 
     def iterate_dictionary_update(  # noqa: PLR0912
         self,
@@ -395,8 +395,8 @@ class DataDict:
                                         self.dictionary_yml["dictionary"][
                                             dict_num
                                         ]["models"] = [model["name"]]
-                        self._update_existing_field(
-                            model_column, model, file_path
+                        _update_existing_field(
+                            self.existing_fields, model_column, model, file_path
                         )
                 else:
                     logging.warning(
