@@ -19,24 +19,6 @@ def insert_dict_item(
 ) -> dict:
     """
     Insert a new key-value pair into a dictionary at the specified index.
-
-    This method is used to insert a new key-value pair into the provided
-    dictionary at the given index. The function first extracts the keys and
-    values from the dictionary, then inserts the new key and value at the
-    specified index. Finally, it creates a new dictionary with the modified
-    key-value pairs and returns it.
-
-    Parameters:
-        dictionary (dict): The dictionary to which the new key-value pair
-            should be inserted.
-        key (hashable): The key to insert into the dictionary.
-        value (any): The value associated with the new key to be inserted.
-        index (int): The index at which the new key-value pair should be
-            inserted.
-
-    Returns:
-        dict: A new dictionary with the inserted key-value pair at the
-            specified index.
     """
 
     keys = list(dictionary.keys())
