@@ -161,7 +161,12 @@ def test__existing_fields_with_descriptions_can_be_updated(
     model_column = {"name": "field1", "description": "desc1"}
     model = {"name": "model1"}
     file_path = "path/to/file1.yml"
-    datadict_instance._update_existing_field(model_column, model, file_path)
+    apply._update_existing_field(
+        datadict_instance.existing_fields,
+        model_column,
+        model,
+        file_path,
+    )
 
     expected = [
         {
@@ -184,7 +189,12 @@ def test__existing_fields_without_descriptions_can_be_updated(
     model_column = {"name": "field2"}
     model = {"name": "model2"}
     file_path = "path/to/file2.yml"
-    datadict_instance._update_existing_field(model_column, model, file_path)
+    apply._update_existing_field(
+        datadict_instance.existing_fields,
+        model_column,
+        model,
+        file_path,
+    )
 
     expected = [
         {
