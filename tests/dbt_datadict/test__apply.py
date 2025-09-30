@@ -214,7 +214,7 @@ def test__dictionary_can_be_iterated_with_updates(
     datadict_instance.dictionary_yml = {
         "dictionary": [{"name": "field1", "description": "new_desc"}]
     }
-    updates = datadict_instance._iterate_dictionary_update(
+    updates = datadict_instance.iterate_dictionary_update(
         model_yaml, "path/to/model.yml"
     )
 
@@ -240,7 +240,7 @@ def test__dictionary_can_be_iterated_without_updates(
     datadict_instance.dictionary_yml = {
         "dictionary": [{"name": "field1", "description": "new_desc"}]
     }
-    updates = datadict_instance._iterate_dictionary_update(
+    updates = datadict_instance.iterate_dictionary_update(
         model_yaml, "path/to/model.yml"
     )
 
@@ -300,7 +300,10 @@ def test__dictionary_can_be_applied_to_a_model(
     with open(model_yaml_file, "w") as file:
         utils.YAML.dump(model_yaml, file)
 
-    datadict_instance.apply_data_dictionary_to_file(str(model_yaml_file))
+    apply.apply_data_dictionary_to_file(
+        str(model_yaml_file),
+        datadict_instance.iterate_dictionary_update,
+    )
     with open(model_yaml_file) as file:
         updated_yaml = utils.YAML.load(file)
 
@@ -347,7 +350,10 @@ def test__dictionary_can_be_applied_to_multiple_models(
         utils.YAML.dump(model_yaml_1, file)
     with open(model_yaml_file2, "w") as file:
         utils.YAML.dump(model_yaml_2, file)
-    datadict_instance.apply_data_dictionary_to_path(str(temp_dir))
+    apply.apply_data_dictionary_to_path(
+        str(temp_dir),
+        datadict_instance.iterate_dictionary_update,
+    )
     with open(model_yaml_file1) as file:
         updated_yaml1 = utils.YAML.load(file)
     with open(model_yaml_file2) as file:

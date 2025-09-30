@@ -38,7 +38,10 @@ def apply(dictionary, directory):
     the model files where possible.
     """
     dictionary = apply_.DataDict(dictionary)
-    dictionary.apply_data_dictionary_to_path(directory)
+    apply_.apply_data_dictionary_to_path(
+        directory,
+        dictionary.iterate_dictionary_update,
+    )
     dictionary.collate_output_dictionary()
 
 

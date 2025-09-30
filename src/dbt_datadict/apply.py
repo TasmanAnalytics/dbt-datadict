@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+from collections.abc import Callable
 
 from dbt_datadict import utils
 
@@ -176,6 +177,76 @@ def _collate_metadata(existing_fields: list[dict]) -> list:
     return sorted(result, key=lambda d: d["name"])
 
 
+def apply_data_dictionary_to_file(
+    file_path: str,
+    # Taking a callable is a short-term solution during refactoring and
+    # will be replaced with a more structured approach in the future
+    dictionary_updater: Callable[[dict, str], dict],
+) -> None:
+    """
+    Apply the data dictionary updates to the specified model YAML file.
+
+    This method applies the data dictionary updates to the specified
+    'file_path' representing a model YAML file. It checks if the file
+    contains valid model data by using '_open_model_yml_file' function. If
+    the file is valid, it iterates through the model YAML data and updates
+    the descriptions of fields based on the entries in the 'dictionary_yml'.
+    If any updates are made, it writes the updated YAML data back to the
+    file using the '_output_model_file' function. If no updates are made, it
+    logs a message stating that no updates were found.
+    """
+
+    logging.info(f"Checking file '{file_path}'...")
+    model_yaml = utils.open_model_yml_file(utils.YAML, file_path)
+    if model_yaml["status"] == "valid":
+        try:
+            updates = dictionary_updater(model_yaml["yaml"], file_path)
+            if updates["updated"]:
+                utils.output_model_file(
+                    utils.YAML, file_path, updates["model_yaml"], False
+                )
+                logging.info(f"File {file_path} has been updated")
+            else:
+                logging.info(f"No updates found for file '{file_path}'")
+
+        except FileNotFoundError:
+            logging.error(f"File '{file_path}' not found.")
+        except Exception as e:
+            logging.error(f"Error processing file '{file_path}'. Error: {e}")
+    else:
+        logging.info(
+            f"File '{file_path}' contains no models and has been skipped."
+        )
+
+
+def apply_data_dictionary_to_path(
+    directory: str,
+    # Taking a callable is a short-term solution during refactoring and
+    # will be replaced with a more structured approach in the future
+    dictionary_updater: Callable[[dict, str], dict],
+) -> None:
+    """
+    Apply the data dictionary updates to all model YAML files in the
+    specified directory and its subdirectories.
+
+    This method applies the data dictionary updates to all model YAML files
+    present in the specified 'directory' and its subdirectories. It iterates
+    through the directory using os.walk and processes each YAML file using
+    the 'apply_data_dictionary_to_file' function.
+    """
+
+    if os.path.exists(directory) and os.path.isdir(directory):
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith(".yaml") or file.endswith(".yml"):
+                    file_path = os.path.join(root, file)
+                    apply_data_dictionary_to_file(file_path, dictionary_updater)
+    else:
+        logging.error(
+            f"Directory '{directory}' doesn't exist or can't be found"
+        )
+
+
 class DataDict:
     dictionary_path: str
     dictionary_yml: dict
@@ -243,11 +314,15 @@ class DataDict:
                 }
             )
 
-    def _iterate_dictionary_update(self, model_yaml, file_path) -> dict:  # noqa: PLR0912
+    def iterate_dictionary_update(  # noqa: PLR0912
+        self,
+        model_yaml: dict,
+        file_path: str,
+    ) -> dict:
         """
         Iterate through the model YAML and update dictionary fields if needed.
 
-        This private method iterates through the model YAML and updates dictionary fields if they are found
+        This method iterates through the model YAML and updates dictionary fields if they are found
         in the 'dictionary_yml'. For each model in the 'model_yaml', it checks if the model column name matches
         any entry in the 'dictionary_yml' or its aliases. If a match is found and the model YAML contains a
         'description' for that field, it updates the description from the 'dictionary_yml'. If the 'description'
@@ -365,73 +440,6 @@ class DataDict:
         except Exception as error:
             logging.error(
                 f"There was a problem updating dictionary at '{self.dictionary_path}'. {error}"
-            )
-
-    def apply_data_dictionary_to_file(self, file_path) -> None:
-        """
-        Apply the data dictionary updates to the specified model YAML file.
-
-        This method applies the data dictionary updates to the specified 'file_path' representing a model YAML file.
-        It checks if the file contains valid model data by using '_open_model_yml_file' function. If the file is
-        valid, it iterates through the model YAML data and updates the descriptions of fields based on the entries
-        in the 'dictionary_yml'. If any updates are made, it writes the updated YAML data back to the file using the
-        '_output_model_file' function. If no updates are made, it logs a message stating that no updates were found.
-
-        Parameters:
-            file_path (str): The path to the model YAML file to which the data dictionary updates should be applied.
-
-        Returns:
-            None
-        """
-        logging.info(f"Checking file '{file_path}'...")
-        model_yaml = utils.open_model_yml_file(utils.YAML, file_path)
-        if model_yaml["status"] == "valid":
-            try:
-                updates = self._iterate_dictionary_update(
-                    model_yaml["yaml"], file_path
-                )
-                if updates["updated"]:
-                    utils.output_model_file(
-                        utils.YAML, file_path, updates["model_yaml"], False
-                    )
-                    logging.info(f"File {file_path} has been updated")
-                else:
-                    logging.info(f"No updates found for file '{file_path}'")
-
-            except FileNotFoundError:
-                logging.error(f"File '{file_path}' not found.")
-            except Exception as e:
-                logging.error(
-                    f"Error processing file '{file_path}'. Error: " + e
-                )
-        else:
-            logging.info(
-                f"File '{file_path}' contains no models and has been skipped."
-            )
-
-    def apply_data_dictionary_to_path(self, directory) -> None:
-        """
-        Apply the data dictionary updates to all model YAML files in the specified directory and its subdirectories.
-
-        This method applies the data dictionary updates to all model YAML files present in the specified 'directory'
-        and its subdirectories. It iterates through the directory using os.walk and processes each YAML file using the
-        'apply_data_dictionary_to_file' function.
-
-        Parameters:
-            directory (str): The path to the directory where model YAML files are located.
-
-        Returns:
-            None
-        """
-        if os.path.exists(directory) and os.path.isdir(directory):
-            for root, dirs, files in os.walk(directory):
-                for file in files:
-                    if file.endswith(".yaml") or file.endswith(".yml"):
-                        file_path = os.path.join(root, file)
-                        self.apply_data_dictionary_to_file(file_path)
-        else:
-            logging.error(
-                f"Directory '{directory}' doesn't exist or can't be found"
             )
 
     def collate_output_dictionary(self):
