@@ -84,7 +84,7 @@ def test__dictionary_can_be_updated(datadict_instance: apply.DataDict):
             },
         ]
     }
-    formatted_yaml = datadict_instance._format_dictionary(original)
+    formatted_yaml = apply._format_dictionary(original)
 
     expected = {
         "dictionary": [
@@ -112,7 +112,7 @@ def test__dictionary_can_be_parsed_without_aliases(
     """
 
     dictionary = {"dictionary": [{"name": "field1"}, {"name": "field2"}]}
-    result = datadict_instance._parse_aliases(dictionary)
+    result = apply._parse_aliases(dictionary)
 
     assert result == ["field1", "field2"]
 
@@ -130,7 +130,7 @@ def test__dictionary_can_be_parsed_with_aliases(
             {"name": "field2"},
         ]
     }
-    result = datadict_instance._parse_aliases(test_dictionary)
+    result = apply._parse_aliases(test_dictionary)
 
     assert result == ["field1", "f1", "alias1", "field2"]
 
@@ -141,9 +141,7 @@ def test__dictionary_items_can_be_inserted(datadict_instance: apply.DataDict):
     """
 
     test_dict = {"key1": "value1", "key3": "value3"}
-    result_dict = datadict_instance._insert_dict_item(
-        test_dict, "key2", "value2", 1
-    )
+    result_dict = utils.insert_dict_item(test_dict, "key2", "value2", 1)
 
     assert result_dict == {"key1": "value1", "key2": "value2", "key3": "value3"}
 
@@ -258,7 +256,7 @@ def test__dictionary_metadata_can_be_collated(
         {"name": "field2", "model": "model1", "description": "desc3"},
         {"name": "field2", "model": "model2"},
     ]
-    result = datadict_instance._collate_metadata(existing_fields)
+    result = apply._collate_metadata(existing_fields)
 
     expected = [
         {

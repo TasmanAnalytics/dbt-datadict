@@ -4,6 +4,150 @@ import os
 from dbt_datadict import utils
 
 
+def _parse_aliases(dictionary: dict) -> list | None:
+    """
+    Parse dictionary data to extract field names and their aliases.
+
+    This method is used to parse the YAML dictionary data and extract field
+    names along with their associated aliases. The function searches for the
+    'dictionary' key in the provided ``dictionary`` parameter, and if it
+    exists, it iterates through each field to gather the field name and its
+    aliases, if available.
+
+    Parameters:
+        dictionary (dict): The YAML dictionary data to be parsed.
+
+    Returns:
+        list: A list containing the field names and their aliases (if
+            available).
+    """
+
+    try:
+        values = []
+        if dictionary["dictionary"] is None:
+            return values
+        for dict_column in dictionary["dictionary"]:
+            values.append(dict_column["name"])
+            try:
+                for alias in dict_column["aliases"]:
+                    values.append(alias)
+            except:  # noqa: S110
+                pass
+        return values
+    except TypeError:
+        logging.info("There was an error when trying to parse the dictionary")
+
+
+def _format_dictionary(dictionary_yml: dict) -> dict | None:
+    """
+    Format the dictionary data to ensure consistent structure.
+
+    This method is used to format the YAML dictionary data to ensure that
+    each field in the 'dictionary' key contains 'description' and 'aliases'
+    keys. If any field is missing the 'description' or 'aliases' keys, they
+    will be added with appropriate default values. If the 'dictionary' key
+    does not exist in the YAML data, it will be created with an empty list
+    as the value.
+
+    Parameters:
+        dictionary_yml (dict): The YAML dictionary data to be formatted.
+
+    Returns:
+        dictionary_yml (dict): The formatted dictionary
+    """
+
+    try:
+        if "dictionary" in dictionary_yml:
+            if dictionary_yml["dictionary"] is not None:
+                for field_num, field in enumerate(dictionary_yml["dictionary"]):
+                    if "description" not in field:
+                        dictionary_yml["dictionary"][field_num][
+                            "description"
+                        ] = ""
+                    if "aliases" not in field:
+                        dictionary_yml["dictionary"][field_num]["aliases"] = []
+        else:
+            dictionary_yml["dictionary"] = []
+        return dictionary_yml
+    except TypeError:
+        logging.info("There was an error when trying to format the dictionary")
+
+
+def _collate_metadata(existing_fields: list[dict]) -> list:
+    """
+    Collates metadata from existing field list.
+
+    This function takes a list of dictionaries representing existing fields
+    and organizes the metadata by grouping fields based on their names. For
+    each unique field name, it collects unique models and non-empty
+    descriptions associated with the field.
+
+    Parameters:
+        existing_fields (list of dict): A list of dictionaries, where each
+            dictionary contains information about an existing field with
+            keys 'name', 'model', and optionally 'description'.
+
+    Returns:
+        list: A list of dictionaries containing collated metadata for each
+            field. Each dictionary contains keys 'name', 'description',
+            'versions', and 'models'.
+    """
+
+    metadata = {}
+    result = []
+
+    # extract metadata from existing field list
+    for field in existing_fields:
+        name = field["name"]
+        model = field["model"]
+        description = field.get("description", "")
+
+        if name not in metadata:
+            metadata[name] = {
+                "description_versions": [description],
+                "description": description,
+                "models": [model],
+            }
+        else:
+            metadata[name]["description_versions"].append(description)
+            metadata[name]["models"].append(model)
+
+    # summarise metadata
+    for name, info in metadata.items():
+        versions = list(
+            set(
+                [
+                    version
+                    for version in info["description_versions"]
+                    if version != ""
+                ]
+            )
+        )
+        versions.sort()
+        models = list(set(info["models"]))
+        models.sort()
+        if len(versions) > 1:
+            result.append(
+                {
+                    "name": name,
+                    "description": "",
+                    "description_versions": versions,
+                    "models": models,
+                }
+            )
+        else:
+            result.append(
+                {
+                    "name": name,
+                    "description": info["description"],
+                    "models": models,
+                }
+            )
+
+    # return field list sorted by name
+    return sorted(result, key=lambda d: d["name"])
+
+
 class DataDict:
     def __init__(self, dictionary_file_path) -> None:
         """
@@ -22,10 +166,8 @@ class DataDict:
         """
 
         self.dictionary_path = dictionary_file_path
-        self.dictionary_yml = self._format_dictionary(
-            self._try_load_dictionary()
-        )
-        self.dictionary_items = self._parse_aliases(self.dictionary_yml)
+        self.dictionary_yml = _format_dictionary(self._try_load_dictionary())
+        self.dictionary_items = _parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
 
@@ -116,98 +258,6 @@ class DataDict:
                 f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists."
             )
             raise SystemExit
-
-    def _format_dictionary(self, dictionary_yml) -> dict:
-        """
-        Format the dictionary data to ensure consistent structure.
-
-        This private method is used to format the YAML dictionary data to ensure that each field in the
-        'dictionary' key contains 'description' and 'aliases' keys. If any field is missing the 'description'
-        or 'aliases' keys, they will be added with appropriate default values. If the 'dictionary' key does
-        not exist in the YAML data, it will be created with an empty list as the value.
-
-        Parameters:
-            dictionary_yml (dict): The YAML dictionary data to be formatted.
-
-        Returns:
-            dictionary_yml (dict): The formatted dictionary
-        """
-        try:
-            if "dictionary" in dictionary_yml:
-                if dictionary_yml["dictionary"] is not None:
-                    for field_num, field in enumerate(
-                        dictionary_yml["dictionary"]
-                    ):
-                        if "description" not in field:
-                            dictionary_yml["dictionary"][field_num][
-                                "description"
-                            ] = ""
-                        if "aliases" not in field:
-                            dictionary_yml["dictionary"][field_num][
-                                "aliases"
-                            ] = []
-            else:
-                dictionary_yml["dictionary"] = []
-            return dictionary_yml
-        except TypeError:
-            logging.info(
-                "There was an error when trying to format the dictionary"
-            )
-
-    def _parse_aliases(self, dictionary) -> list:
-        """
-        Parse dictionary data to extract field names and their aliases.
-
-        This private method is used to parse the YAML dictionary data and extract field names along with their
-        associated aliases. The function searches for the 'dictionary' key in the provided 'dictionary' parameter,
-        and if it exists, it iterates through each field to gather the field name and its aliases, if available.
-
-        Parameters:
-            dictionary (dict): The YAML dictionary data to be parsed.
-
-        Returns:
-            list: A list containing the field names and their aliases (if available).
-        """
-        try:
-            values = []
-            if dictionary["dictionary"] is None:
-                return values
-            for dict_column in dictionary["dictionary"]:
-                values.append(dict_column["name"])
-                try:
-                    for alias in dict_column["aliases"]:
-                        values.append(alias)
-                except:  # noqa: S110
-                    pass
-            return values
-        except TypeError:
-            logging.info(
-                "There was an error when trying to parse the dictionary"
-            )
-
-    def _insert_dict_item(self, dictionary, key, value, index) -> dict:
-        """
-        Insert a new key-value pair into a dictionary at the specified index.
-
-        This private method is used to insert a new key-value pair into the provided dictionary at the given index.
-        The function first extracts the keys and values from the dictionary, then inserts the new key and value at
-        the specified index. Finally, it creates a new dictionary with the modified key-value pairs and returns it.
-
-        Parameters:
-            dictionary (dict): The dictionary to which the new key-value pair should be inserted.
-            key (hashable): The key to insert into the dictionary.
-            value (any): The value associated with the new key to be inserted.
-            index (int): The index at which the new key-value pair should be inserted.
-
-        Returns:
-            dict: A new dictionary with the inserted key-value pair at the specified index.
-        """
-        keys = list(dictionary.keys())
-        values = list(dictionary.values())
-        keys.insert(index, key)
-        values.insert(index, value)
-
-        return dict(zip(keys, values))
 
     def _update_existing_field(self, model_column, model, file_path) -> None:
         """
@@ -302,7 +352,7 @@ class DataDict:
                                     elif dict_column["description"] != "":
                                         model_yaml["models"][model_number][
                                             "columns"
-                                        ][col_num] = self._insert_dict_item(
+                                        ][col_num] = utils.insert_dict_item(
                                             model_yaml["models"][model_number][
                                                 "columns"
                                             ][col_num],
@@ -342,76 +392,6 @@ class DataDict:
                 f"Error getting file updates for '{file_path}': {error}"
             )
         return {"updated": False}
-
-    def _collate_metadata(self, existing_fields) -> list:
-        """
-        Collates metadata from existing field list.
-
-        This function takes a list of dictionaries representing existing fields and organizes the metadata
-        by grouping fields based on their names. For each unique field name, it collects unique models and
-        non-empty descriptions associated with the field.
-
-        Parameters:
-            existing_fields (list of dict): A list of dictionaries, where each dictionary contains information
-                                            about an existing field with keys 'name', 'model', and optionally 'description'.
-
-        Returns:
-            list: A list of dictionaries containing collated metadata for each field. Each dictionary contains
-                keys 'name', 'description', 'versions', and 'models'.
-        """
-        metadata = {}
-        result = []
-
-        # extract metadata from existing field list
-        for field in existing_fields:
-            name = field["name"]
-            model = field["model"]
-            description = field.get("description", "")
-
-            if name not in metadata:
-                metadata[name] = {
-                    "description_versions": [description],
-                    "description": description,
-                    "models": [model],
-                }
-            else:
-                metadata[name]["description_versions"].append(description)
-                metadata[name]["models"].append(model)
-
-        # summarise metadata
-        for name, info in metadata.items():
-            versions = list(
-                set(
-                    [
-                        version
-                        for version in info["description_versions"]
-                        if version != ""
-                    ]
-                )
-            )
-            versions.sort()
-            models = list(set(info["models"]))
-            models.sort()
-            if len(versions) > 1:
-                result.append(
-                    {
-                        "name": name,
-                        "description": "",
-                        "description_versions": versions,
-                        "models": models,
-                    }
-                )
-            else:
-                result.append(
-                    {
-                        "name": name,
-                        "description": info["description"],
-                        "models": models,
-                    }
-                )
-
-        # return field list sorted by name
-        return sorted(result, key=lambda d: d["name"])
 
     def _output_dictionary(self) -> None:
         """
@@ -532,8 +512,6 @@ class DataDict:
             3. The function proceeds to write the updated 'dictionary_yml' to the dictionary file using
             the '_output_dictionary()' method.
         """
-        existing_field_descriptions = self._collate_metadata(
-            self.existing_fields
-        )
+        existing_field_descriptions = _collate_metadata(self.existing_fields)
         self.dictionary_yml["dictionary"] = existing_field_descriptions
         self._output_dictionary()
