@@ -14,7 +14,7 @@ def check_files_for_models(yaml_obj, files) -> dict:
         file_yamls = []
         model_list = []
         for file_path in files:
-            file_contents = utils.open_model_yml_file(yaml_obj, file_path)
+            file_contents = utils.open_model_yml_file(file_path)
             if file_contents["status"] == "valid":
                 try:
                     for model in file_contents["yaml"]["models"]:
@@ -166,7 +166,7 @@ def updated_existing_files(
 
 def add_missing_models(yaml_obj, path, models, sort):
     if os.path.isfile(path) and os.path.exists(path):
-        yaml = utils.open_model_yml_file(yaml_obj, path)
+        yaml = utils.open_model_yml_file(path)
         if yaml["status"] == "valid":
             logging.info(
                 f"File '{path}' has been found and is a valid models file"

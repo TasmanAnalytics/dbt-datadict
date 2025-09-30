@@ -1,6 +1,13 @@
 import logging
 import os
 
+import ruamel.yaml
+
+YAML = ruamel.yaml.YAML()
+YAML.preserve_quotes = True
+YAML.indent(mapping=2, sequence=4, offset=2)
+YAML.width = 200
+
 
 def add_spaces_between_cols(file):
     """
@@ -24,7 +31,7 @@ def add_spaces_between_cols(file):
         f.write(replaced)
 
 
-def open_model_yml_file(yaml_obj, file_path) -> dict:
+def open_model_yml_file(file_path) -> dict:
     """
     Open and load a model YAML file for processing.
 
@@ -41,7 +48,7 @@ def open_model_yml_file(yaml_obj, file_path) -> dict:
             The "yaml" key will contain the loaded YAML data if valid, otherwise, it will contain None.
     """
     with open(file_path, "r+") as file:
-        yaml = yaml_obj.load(file)
+        yaml = YAML.load(file)
         if check_valid_model_file(yaml):
             return {"status": "valid", "yaml": yaml}
         return {"status": "invalid", "yaml": None}
