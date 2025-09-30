@@ -1,25 +1,8 @@
 import logging
 import os
 import pathlib
-from collections.abc import Hashable
-from typing import Any
-
-import ruamel.yaml
 
 from dbt_datadict import utils
-
-
-def YAML() -> ruamel.yaml.YAML:  # noqa: N802
-    """
-    Return a configured ``ruamel.yaml.YAML`` object.
-    """
-
-    yaml = ruamel.yaml.YAML()
-    yaml.preserve_quotes = True
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    yaml.width = 200
-
-    return yaml
 
 
 def load_or_create_dictionary(dictionary_path: str) -> dict:
@@ -33,11 +16,11 @@ def load_or_create_dictionary(dictionary_path: str) -> dict:
     dict_path = pathlib.Path(dictionary_path)
     if dict_path.exists() and dict_path.is_file():
         logging.info(f"Loading dictionary from '{dict_path.absolute()}'")
-        return YAML().load(dict_path.read_text())
+        return utils.YAML.load(dict_path.read_text())
 
     base_yaml = {"dictionary": []}
     try:
-        YAML().dump(base_yaml, dict_path)
+        utils.YAML.dump(base_yaml, dict_path)
         logging.info(
             f"The file '{dict_path.absolute()}' was successfully created."
         )
@@ -49,8 +32,7 @@ def load_or_create_dictionary(dictionary_path: str) -> dict:
         raise err
 
 
-# TODO: This should be private
-def parse_aliases(dictionary: dict) -> list | None:
+def _parse_aliases(dictionary: dict) -> list | None:
     """
     Parse dictionary data to extract field names and their aliases.
 
@@ -84,8 +66,7 @@ def parse_aliases(dictionary: dict) -> list | None:
         logging.info("There was an error when trying to parse the dictionary")
 
 
-# TODO: This should be private
-def format_dictionary(dictionary_yml: dict) -> dict | None:
+def _format_dictionary(dictionary_yml: dict) -> dict | None:
     """
     Format the dictionary data to ensure consistent structure.
 
@@ -120,8 +101,7 @@ def format_dictionary(dictionary_yml: dict) -> dict | None:
         logging.info("There was an error when trying to format the dictionary")
 
 
-# TODO: This should be private
-def collate_metadata(existing_fields: list[dict]) -> list:
+def _collate_metadata(existing_fields: list[dict]) -> list:
     """
     Collates metadata from existing field list.
 
@@ -196,44 +176,13 @@ def collate_metadata(existing_fields: list[dict]) -> list:
     return sorted(result, key=lambda d: d["name"])
 
 
-# TODO: This should be private
-def insert_dict_item(
-    dictionary: dict,
-    key: Hashable,
-    value: Any,
-    index: int,
-) -> dict:
-    """
-    Insert a new key-value pair into a dictionary at the specified index.
-
-    This method is used to insert a new key-value pair into the provided
-    dictionary at the given index. The function first extracts the keys and
-    values from the dictionary, then inserts the new key and value at the
-    specified index. Finally, it creates a new dictionary with the modified
-    key-value pairs and returns it.
-
-    Parameters:
-        dictionary (dict): The dictionary to which the new key-value pair
-            should be inserted.
-        key (hashable): The key to insert into the dictionary.
-        value (any): The value associated with the new key to be inserted.
-        index (int): The index at which the new key-value pair should be
-            inserted.
-
-    Returns:
-        dict: A new dictionary with the inserted key-value pair at the
-            specified index.
-    """
-
-    keys = list(dictionary.keys())
-    values = list(dictionary.values())
-    keys.insert(index, key)
-    values.insert(index, value)
-
-    return dict(zip(keys, values))
-
-
 class DataDict:
+    dictionary_path: str
+    dictionary_yml: dict
+    dictionary_items: list
+    existing_fields: list
+    missing_fields: list
+
     def __init__(self, dictionary_file_path) -> None:
         """
         Initialize the object with the given dictionary file path and detailed logging settings.
@@ -250,12 +199,11 @@ class DataDict:
             None
         """
 
-        self.yaml = YAML()
         self.dictionary_path = dictionary_file_path
-        self.dictionary_yml = format_dictionary(
+        self.dictionary_yml = _format_dictionary(
             load_or_create_dictionary(dictionary_file_path)
         )
-        self.dictionary_items = parse_aliases(self.dictionary_yml)
+        self.dictionary_items = _parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
 
@@ -352,7 +300,7 @@ class DataDict:
                                     elif dict_column["description"] != "":
                                         model_yaml["models"][model_number][
                                             "columns"
-                                        ][col_num] = insert_dict_item(
+                                        ][col_num] = utils.insert_dict_item(
                                             model_yaml["models"][model_number][
                                                 "columns"
                                             ][col_num],
@@ -409,7 +357,7 @@ class DataDict:
         """
         try:
             with open(self.dictionary_path, "w") as file:
-                self.yaml.dump(self.dictionary_yml, file)
+                utils.YAML.dump(self.dictionary_yml, file)
                 utils.add_spaces_between_cols(self.dictionary_path)
             logging.info(
                 f"Dictionary '{self.dictionary_path}' has been updated"
@@ -436,7 +384,7 @@ class DataDict:
             None
         """
         logging.info(f"Checking file '{file_path}'...")
-        model_yaml = utils.open_model_yml_file(self.yaml, file_path)
+        model_yaml = utils.open_model_yml_file(utils.YAML, file_path)
         if model_yaml["status"] == "valid":
             try:
                 updates = self._iterate_dictionary_update(
@@ -444,7 +392,7 @@ class DataDict:
                 )
                 if updates["updated"]:
                     utils.output_model_file(
-                        self.yaml, file_path, updates["model_yaml"], False
+                        utils.YAML, file_path, updates["model_yaml"], False
                     )
                     logging.info(f"File {file_path} has been updated")
                 else:
@@ -512,6 +460,6 @@ class DataDict:
             3. The function proceeds to write the updated 'dictionary_yml' to the dictionary file using
             the '_output_dictionary()' method.
         """
-        existing_field_descriptions = collate_metadata(self.existing_fields)
+        existing_field_descriptions = _collate_metadata(self.existing_fields)
         self.dictionary_yml["dictionary"] = existing_field_descriptions
         self._output_dictionary()
