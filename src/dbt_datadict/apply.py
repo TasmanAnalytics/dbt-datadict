@@ -6,6 +6,19 @@ import ruamel.yaml
 from dbt_datadict import utils
 
 
+def YAML() -> ruamel.yaml.YAML:  # noqa: N802
+    """
+    Return a configured ``ruamel.yaml.YAML`` object.
+    """
+
+    yaml = ruamel.yaml.YAML()
+    yaml.preserve_quotes = True
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    yaml.width = 200
+
+    return yaml
+
+
 class DataDict:
     def __init__(self, dictionary_file_path, detailed_logs=True) -> None:
         """
@@ -26,7 +39,7 @@ class DataDict:
         """
         self.detailed_logs = detailed_logs
         self._init_logging()
-        self._init_yaml()
+        self.yaml = YAML()
         self.dictionary_path = dictionary_file_path
         self.dictionary_yml = self._format_dictionary(
             self._try_load_dictionary()
@@ -34,41 +47,6 @@ class DataDict:
         self.dictionary_items = self._parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
-
-    def _init_yaml(self) -> None:
-        """
-        Initialize the YAML object and apply YAML configuration.
-
-        This private method is used to initialize the YAML serializer object from the 'ruamel.yaml' library
-        and apply specific configuration settings to it using the '_apply_yaml_config()' method.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.yaml = ruamel.yaml.YAML()
-        self._apply_yaml_config()
-
-    def _apply_yaml_config(self) -> None:
-        """
-        Apply YAML configuration settings.
-
-        This private method is used to apply specific configuration settings to the YAML serializer in the
-        object. It sets 'preserve_quotes' to True, which preserves quotes around strings in the output YAML.
-        Additionally, it configures the indentation for mappings and sequences and sets the 'width' parameter
-        for line wrapping in the output YAML.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.yaml.preserve_quotes = True
-        self.yaml.indent(mapping=2, sequence=4, offset=2)
-        self.yaml.width = 200
 
     def _init_logging(self):
         """
