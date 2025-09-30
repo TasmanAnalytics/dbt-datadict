@@ -25,7 +25,7 @@ def test__valid_yaml_files_can_be_opened(
     }
     with open(model_yaml_file, "w") as file:
         yaml_obj.dump(model_yaml, file)
-    result = utils.open_model_yml_file(yaml_obj, model_yaml_file)
+    result = utils.open_model_yml_file(model_yaml_file)
 
     assert result["status"] == "valid"
     assert isinstance(result["yaml"], dict)
@@ -42,7 +42,7 @@ def test__invalid_yaml_files_return_invalid_status(
     invalid_model_yaml_file = os.path.join(temp_dir, "invalid_model_file.yml")
     with open(invalid_model_yaml_file, "w") as file:
         file.write("invalid_data:\n")
-    result = utils.open_model_yml_file(yaml_obj, invalid_model_yaml_file)
+    result = utils.open_model_yml_file(invalid_model_yaml_file)
 
     assert result["status"] == "invalid"
     assert result["yaml"] is None

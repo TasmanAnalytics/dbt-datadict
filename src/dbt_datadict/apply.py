@@ -1,13 +1,11 @@
 import logging
 import os
 
-import ruamel.yaml
-
 from dbt_datadict import utils
 
 
 class DataDict:
-    def __init__(self, dictionary_file_path, detailed_logs=True) -> None:
+    def __init__(self, dictionary_file_path) -> None:
         """
         Initialize the object with the given dictionary file path and detailed logging settings.
 
@@ -18,15 +16,11 @@ class DataDict:
 
         Parameters:
             dictionary_file_path (str): The file path to the YAML dictionary file.
-            detailed_logs (bool, optional): Determines whether detailed log messages with 'info' level
-                                            should be logged. Defaults to True.
 
         Returns:
             None
         """
-        self.detailed_logs = detailed_logs
-        self._init_logging()
-        self._init_yaml()
+
         self.dictionary_path = dictionary_file_path
         self.dictionary_yml = self._format_dictionary(
             self._try_load_dictionary()
@@ -34,81 +28,6 @@ class DataDict:
         self.dictionary_items = self._parse_aliases(self.dictionary_yml)
         self.existing_fields = []
         self.missing_fields = []
-
-    def _init_yaml(self) -> None:
-        """
-        Initialize the YAML object and apply YAML configuration.
-
-        This private method is used to initialize the YAML serializer object from the 'ruamel.yaml' library
-        and apply specific configuration settings to it using the '_apply_yaml_config()' method.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.yaml = ruamel.yaml.YAML()
-        self._apply_yaml_config()
-
-    def _apply_yaml_config(self) -> None:
-        """
-        Apply YAML configuration settings.
-
-        This private method is used to apply specific configuration settings to the YAML serializer in the
-        object. It sets 'preserve_quotes' to True, which preserves quotes around strings in the output YAML.
-        Additionally, it configures the indentation for mappings and sequences and sets the 'width' parameter
-        for line wrapping in the output YAML.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.yaml.preserve_quotes = True
-        self.yaml.indent(mapping=2, sequence=4, offset=2)
-        self.yaml.width = 200
-
-    def _init_logging(self):
-        """
-        Initialize logging configuration for the object.
-
-        This private method is used to set up the logging configuration for the object. It configures the
-        logging level to INFO and specifies the format of the log messages to display the log level and the
-        log message text.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(levelname)s: %(message)s",
-        )
-
-    def _log(self, message, level="info") -> None:
-        """
-        Logs a message with the specified log level.
-
-        This private method is used for logging messages with different log levels, such as 'info', 'warning',
-        and 'error'. If 'detailed_logs' is set to True, messages with 'info' log level will also be logged.
-
-        Parameters:
-            message (str): The log message to be recorded.
-            level (str, optional): The log level to use. Accepted values are 'info' (default), 'warning', and 'error'.
-
-        Returns:
-            None
-        """
-        if level == "warning":
-            logging.warning(message)
-        elif level == "error":
-            logging.error(message)
-        elif self.detailed_logs:
-            logging.info(message)
 
     def _try_load_dictionary(self) -> dict:
         """
@@ -124,10 +43,12 @@ class DataDict:
         if os.path.isfile(self.dictionary_path) and os.path.exists(
             self.dictionary_path
         ):
-            self._log(f"Dictionary {self.dictionary_path} found successfully.")
+            logging.info(
+                f"Dictionary {self.dictionary_path} found successfully."
+            )
             return self._load_dictionary()
 
-        self._log(
+        logging.info(
             f"Dictionary {self.dictionary_path} not found. Creating dictionary..."
         )
         return self._create_dictinary()
@@ -148,20 +69,18 @@ class DataDict:
         """
         try:
             with open(self.dictionary_path) as file:
-                self._log(
+                logging.info(
                     f"Dictionary file '{self.dictionary_path}' loaded successfully."
                 )
-                return self.yaml.load(file)
+                return utils.YAML.load(file)
         except FileNotFoundError:
-            self._log(
-                f"Dictionary file '{self.dictionary_path}' not found.",
-                level="error",
+            logging.error(
+                f"Dictionary file '{self.dictionary_path}' not found."
             )
             raise
         except Exception:
-            self._log(
-                f"Error loading dictionary file '{self.dictionary_path}'",
-                level="error",
+            logging.error(
+                f"Error loading dictionary file '{self.dictionary_path}'"
             )
             raise
 
@@ -183,19 +102,18 @@ class DataDict:
         try:
             with open(self.dictionary_path, "w") as file:
                 base_yaml = {"dictionary": []}
-                self.yaml.dump(base_yaml, file)
-                self._log(
+                utils.YAML.dump(base_yaml, file)
+                logging.info(
                     f"The file '{self.dictionary_path}' was successfully created."
                 )
             with open(self.dictionary_path) as file:
-                self._log(
+                logging.info(
                     f"Dictionary file '{self.dictionary_path}' loaded successfully."
                 )
-                return self.yaml.load(file)
+                return utils.YAML.load(file)
         except OSError:
-            self._log(
-                f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists.",
-                level="error",
+            logging.error(
+                f"An error occurred while creating the file '{self.dictionary_path}'. Check the directory exists."
             )
             raise SystemExit
 
@@ -232,7 +150,9 @@ class DataDict:
                 dictionary_yml["dictionary"] = []
             return dictionary_yml
         except TypeError:
-            self._log("There was an error when trying to format the dictionary")
+            logging.info(
+                "There was an error when trying to format the dictionary"
+            )
 
     def _parse_aliases(self, dictionary) -> list:
         """
@@ -261,7 +181,9 @@ class DataDict:
                     pass
             return values
         except TypeError:
-            self._log("There was an error when trying to parse the dictionary")
+            logging.info(
+                "There was an error when trying to parse the dictionary"
+            )
 
     def _insert_dict_item(self, dictionary, key, value, index) -> dict:
         """
@@ -373,7 +295,7 @@ class DataDict:
                                             ][col_num][
                                                 "description"
                                             ] = dict_column["description"]
-                                            self._log(
+                                            logging.info(
                                                 f"Field '{model_column['name']}' in file '{file_path}' has been updated."
                                             )
                                             updated = True
@@ -388,7 +310,7 @@ class DataDict:
                                             dict_column["description"],
                                             1,
                                         )
-                                        self._log(
+                                        logging.info(
                                             f"Field '{model_column['name']}' in file '{file_path}' has been updated."
                                         )
                                         updated = True
@@ -410,16 +332,14 @@ class DataDict:
                             model_column, model, file_path
                         )
                 else:
-                    self._log(
-                        f"No columns found for model {model['name']} in '{file_path}'",
-                        level="warning",
+                    logging.warning(
+                        f"No columns found for model {model['name']} in '{file_path}'"
                     )
             if updated:
                 return {"updated": True, "model_yaml": model_yaml}
         except Exception as error:
-            self._log(
-                f"Error getting file updates for '{file_path}': {error}",
-                level="error",
+            logging.error(
+                f"Error getting file updates for '{file_path}': {error}"
             )
         return {"updated": False}
 
@@ -509,13 +429,14 @@ class DataDict:
         """
         try:
             with open(self.dictionary_path, "w") as file:
-                self.yaml.dump(self.dictionary_yml, file)
+                utils.YAML.dump(self.dictionary_yml, file)
                 utils.add_spaces_between_cols(self.dictionary_path)
-            self._log(f"Dictionary '{self.dictionary_path}' has been updated")
+            logging.info(
+                f"Dictionary '{self.dictionary_path}' has been updated"
+            )
         except Exception as error:
-            self._log(
-                f"There was a problem updating dictionary at '{self.dictionary_path}'. {error}",
-                level="error",
+            logging.error(
+                f"There was a problem updating dictionary at '{self.dictionary_path}'. {error}"
             )
 
     def apply_data_dictionary_to_file(self, file_path) -> None:
@@ -534,8 +455,8 @@ class DataDict:
         Returns:
             None
         """
-        self._log(f"Checking file '{file_path}'...")
-        model_yaml = utils.open_model_yml_file(self.yaml, file_path)
+        logging.info(f"Checking file '{file_path}'...")
+        model_yaml = utils.open_model_yml_file(file_path)
         if model_yaml["status"] == "valid":
             try:
                 updates = self._iterate_dictionary_update(
@@ -543,21 +464,20 @@ class DataDict:
                 )
                 if updates["updated"]:
                     utils.output_model_file(
-                        self.yaml, file_path, updates["model_yaml"], False
+                        utils.YAML, file_path, updates["model_yaml"], False
                     )
-                    self._log(f"File {file_path} has been updated")
+                    logging.info(f"File {file_path} has been updated")
                 else:
-                    self._log(f"No updates found for file '{file_path}'")
+                    logging.info(f"No updates found for file '{file_path}'")
 
             except FileNotFoundError:
-                self._log(f"File '{file_path}' not found.", level="error")
+                logging.error(f"File '{file_path}' not found.")
             except Exception as e:
-                self._log(
-                    f"Error processing file '{file_path}'. Error: " + e,
-                    level="error",
+                logging.error(
+                    f"Error processing file '{file_path}'. Error: " + e
                 )
         else:
-            self._log(
+            logging.info(
                 f"File '{file_path}' contains no models and has been skipped."
             )
 
@@ -582,9 +502,8 @@ class DataDict:
                         file_path = os.path.join(root, file)
                         self.apply_data_dictionary_to_file(file_path)
         else:
-            self._log(
-                f"Directory '{directory}' doesn't exist or can't be found",
-                level="error",
+            logging.error(
+                f"Directory '{directory}' doesn't exist or can't be found"
             )
 
     def collate_output_dictionary(self):

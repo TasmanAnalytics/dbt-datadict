@@ -1,7 +1,14 @@
+import logging
+
 import click
 
 from dbt_datadict import apply as apply_
 from dbt_datadict import generate as generate_
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+)
 
 
 @click.group()
@@ -30,7 +37,7 @@ def apply(dictionary, directory):
     dictionary file. Additionally, this command will review the dictionary file and apply updates back to the columns in
     the model files where possible.
     """
-    dictionary = apply_.DataDict(dictionary, detailed_logs=True)
+    dictionary = apply_.DataDict(dictionary)
     dictionary.apply_data_dictionary_to_path(directory)
     dictionary.collate_output_dictionary()
 
