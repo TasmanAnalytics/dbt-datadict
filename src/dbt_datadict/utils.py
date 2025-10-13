@@ -1,5 +1,7 @@
 import logging
 import os
+from collections.abc import Hashable
+from typing import Any
 
 import ruamel.yaml
 
@@ -7,6 +9,25 @@ YAML = ruamel.yaml.YAML()
 YAML.preserve_quotes = True
 YAML.indent(mapping=2, sequence=4, offset=2)
 YAML.width = 200
+
+
+def insert_dict_item(
+    dictionary: dict,
+    key: Hashable,
+    value: Any,
+    index: int,
+) -> dict:
+    """
+    Return a new dictionary with the specified key-value pair inserted at
+    the given index.
+    """
+
+    keys = list(dictionary.keys())
+    values = list(dictionary.values())
+    keys.insert(index, key)
+    values.insert(index, value)
+
+    return dict(zip(keys, values))
 
 
 def add_spaces_between_cols(file):
