@@ -26,7 +26,7 @@ lint: uv ## Lint the datadict Python package
 	@echo "\\033[0;34mpre-commit checks\\033[0m"
 	SKIP=identity pre-commit run --all-files --hook-stage pre-commit
 	@echo "\\033[0;34mpre-push checks\\033[0m"
-	pre-commit run --all-files --hook-stage pre-push
+	SKIP=identity pre-commit run --all-files --hook-stage pre-push
 
 clean: ## Uninstall the dbt virtual environment
 	pre-commit uninstall
