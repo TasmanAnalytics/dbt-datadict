@@ -36,19 +36,6 @@ def load_or_create_dictionary(dictionary_path: str) -> dict:
 def _parse_aliases(dictionary: dict) -> list | None:
     """
     Parse dictionary data to extract field names and their aliases.
-
-    This method is used to parse the YAML dictionary data and extract field
-    names along with their associated aliases. The function searches for the
-    'dictionary' key in the provided ``dictionary`` parameter, and if it
-    exists, it iterates through each field to gather the field name and its
-    aliases, if available.
-
-    Parameters:
-        dictionary (dict): The YAML dictionary data to be parsed.
-
-    Returns:
-        list: A list containing the field names and their aliases (if
-            available).
     """
 
     try:
@@ -71,18 +58,9 @@ def _format_dictionary(dictionary_yml: dict) -> dict | None:
     """
     Format the dictionary data to ensure consistent structure.
 
-    This method is used to format the YAML dictionary data to ensure that
-    each field in the 'dictionary' key contains 'description' and 'aliases'
-    keys. If any field is missing the 'description' or 'aliases' keys, they
-    will be added with appropriate default values. If the 'dictionary' key
-    does not exist in the YAML data, it will be created with an empty list
-    as the value.
-
-    Parameters:
-        dictionary_yml (dict): The YAML dictionary data to be formatted.
-
-    Returns:
-        dictionary_yml (dict): The formatted dictionary
+    This ensures that each field in the `dictionary` key contains
+    `description` and `aliases` keys. If any field is missing these keys,
+    they will be added with appropriate default values.
     """
 
     try:
@@ -106,20 +84,8 @@ def _collate_metadata(existing_fields: list[dict]) -> list:
     """
     Collates metadata from existing field list.
 
-    This function takes a list of dictionaries representing existing fields
-    and organizes the metadata by grouping fields based on their names. For
-    each unique field name, it collects unique models and non-empty
+    For each unique field name, collect unique models and non-empty
     descriptions associated with the field.
-
-    Parameters:
-        existing_fields (list of dict): A list of dictionaries, where each
-            dictionary contains information about an existing field with
-            keys 'name', 'model', and optionally 'description'.
-
-    Returns:
-        list: A list of dictionaries containing collated metadata for each
-            field. Each dictionary contains keys 'name', 'description',
-            'versions', and 'models'.
     """
 
     metadata = {}
@@ -185,15 +151,6 @@ def apply_data_dictionary_to_file(
 ) -> None:
     """
     Apply the data dictionary updates to the specified model YAML file.
-
-    This method applies the data dictionary updates to the specified
-    'file_path' representing a model YAML file. It checks if the file
-    contains valid model data by using '_open_model_yml_file' function. If
-    the file is valid, it iterates through the model YAML data and updates
-    the descriptions of fields based on the entries in the 'dictionary_yml'.
-    If any updates are made, it writes the updated YAML data back to the
-    file using the '_output_model_file' function. If no updates are made, it
-    logs a message stating that no updates were found.
     """
 
     logging.info(f"Checking file '{file_path}'...")
@@ -228,11 +185,6 @@ def apply_data_dictionary_to_path(
     """
     Apply the data dictionary updates to all model YAML files in the
     specified directory and its subdirectories.
-
-    This method applies the data dictionary updates to all model YAML files
-    present in the specified 'directory' and its subdirectories. It iterates
-    through the directory using os.walk and processes each YAML file using
-    the 'apply_data_dictionary_to_file' function.
     """
 
     if os.path.exists(directory) and os.path.isdir(directory):
@@ -247,23 +199,37 @@ def apply_data_dictionary_to_path(
         )
 
 
+def _update_existing_field(
+    existing_fields: list[dict],
+    model_column: dict,
+    model: dict,
+    file_path: str,
+) -> None:
+    """
+    Update the list of existing fields with model column details.
+    """
+
+    if "description" in model_column:
+        existing_fields.append(
+            {
+                "name": model_column["name"],
+                "description": model_column["description"],
+                "model": model["name"],
+                "file": file_path,
+            }
+        )
+    else:
+        existing_fields.append(
+            {
+                "name": model_column["name"],
+                "model": model["name"],
+                "file": file_path,
+            }
+        )
+
+
 class DataDict:
     def __init__(self, dictionary_file_path) -> None:
-        """
-        Initialize the object with the given dictionary file path and detailed logging settings.
-
-        This constructor method is used to initialize an instance of the class. It sets the attributes
-        'detailed_logs', 'dictionary_path', 'dictionary_yml', 'dictionary_items', 'existing_fields',
-        and 'missing_fields' based on the provided inputs. The method also initializes logging and YAML
-        configurations and loads the dictionary from the specified file.
-
-        Parameters:
-            dictionary_file_path (str): The file path to the YAML dictionary file.
-
-        Returns:
-            None
-        """
-
         self.dictionary_path = dictionary_file_path
         self.dictionary_yml = _format_dictionary(
             load_or_create_dictionary(dictionary_file_path)
@@ -272,42 +238,6 @@ class DataDict:
         self.existing_fields = []
         self.missing_fields = []
 
-    def _update_existing_field(self, model_column, model, file_path) -> None:
-        """
-        Update the list of existing fields with model column details.
-
-        This private method is used to update the list of existing fields by appending information about a model
-        column found in a model YAML file. The function takes the 'model_column', 'model', and 'file_path' as inputs.
-        If the 'model_column' contains a 'description' key, it appends a dictionary with the column name, description,
-        model name, and file path to the 'existing_fields' list. If the 'description' key is not present, it appends a
-        dictionary without the 'description' key.
-
-        Parameters:
-            model_column (dict): The model column dictionary from the model YAML.
-            model (dict): The model dictionary representing the current model from the YAML file.
-            file_path (str): The file path of the YAML file containing the model.
-
-        Returns:
-            None
-        """
-        if "description" in model_column:
-            self.existing_fields.append(
-                {
-                    "name": model_column["name"],
-                    "description": model_column["description"],
-                    "model": model["name"],
-                    "file": file_path,
-                }
-            )
-        else:
-            self.existing_fields.append(
-                {
-                    "name": model_column["name"],
-                    "model": model["name"],
-                    "file": file_path,
-                }
-            )
-
     def iterate_dictionary_update(  # noqa: PLR0912
         self,
         model_yaml: dict,
@@ -315,21 +245,8 @@ class DataDict:
     ) -> dict:
         """
         Iterate through the model YAML and update dictionary fields if needed.
-
-        This method iterates through the model YAML and updates dictionary fields if they are found
-        in the 'dictionary_yml'. For each model in the 'model_yaml', it checks if the model column name matches
-        any entry in the 'dictionary_yml' or its aliases. If a match is found and the model YAML contains a
-        'description' for that field, it updates the description from the 'dictionary_yml'. If the 'description'
-        is missing, it inserts the 'description' key with the appropriate value.
-
-        Parameters:
-            model_yaml (dict): The model YAML dictionary to be updated.
-            file_path (str): The file path of the YAML file containing the model.
-
-        Returns:
-            dict: A dictionary with keys "updated" and "model_yaml". "updated" will be True if any updates were made,
-                False otherwise. "model_yaml" will contain the updated model YAML data.
         """
+
         updated = False
         try:
             for model_number, model in enumerate(model_yaml["models"]):
@@ -395,8 +312,8 @@ class DataDict:
                                         self.dictionary_yml["dictionary"][
                                             dict_num
                                         ]["models"] = [model["name"]]
-                        self._update_existing_field(
-                            model_column, model, file_path
+                        _update_existing_field(
+                            self.existing_fields, model_column, model, file_path
                         )
                 else:
                     logging.warning(
@@ -410,20 +327,14 @@ class DataDict:
             )
         return {"updated": False}
 
-    def _output_dictionary(self) -> None:
+    def collate_output_dictionary(self):
         """
-        Output the updated dictionary YAML data to a file.
-
-        This private method is used to write the updated dictionary YAML data to a file specified by 'dictionary_path'.
-        The function takes the 'dictionary_yml' data from the class instance and writes it to the file using the YAML
-        serializer.
-
-        Parameters:
-            None
-
-        Returns:
-            None
+        Collate metadata and update the data dictionary before writing to the
+        dictionary file.
         """
+
+        existing_field_descriptions = _collate_metadata(self.existing_fields)
+        self.dictionary_yml["dictionary"] = existing_field_descriptions
         try:
             with open(self.dictionary_path, "w") as file:
                 utils.YAML.dump(self.dictionary_yml, file)
@@ -435,33 +346,3 @@ class DataDict:
             logging.error(
                 f"There was a problem updating dictionary at '{self.dictionary_path}'. {error}"
             )
-
-    def collate_output_dictionary(self):
-        """
-        Collate metadata and update the data dictionary before writing to the dictionary file.
-
-        This method is responsible for collating metadata from the 'existing_fields' list and updating
-        the data dictionary ('dictionary_yml') with this information. The updated dictionary is then
-        written back to the dictionary file specified during class initialization.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-
-        Behavior:
-            1. The function first calls the '_collate_metadata(self.existing_fields)' method to collate
-            metadata from the existing fields. The metadata contains information about the fields,
-            including their names, descriptions, associated versions, and models.
-
-            2. The metadata obtained in the previous step is then assigned to the 'dictionary' key of
-            the class instance's 'dictionary_yml'. This key represents the dictionary data loaded
-            from the YAML file.
-
-            3. The function proceeds to write the updated 'dictionary_yml' to the dictionary file using
-            the '_output_dictionary()' method.
-        """
-        existing_field_descriptions = _collate_metadata(self.existing_fields)
-        self.dictionary_yml["dictionary"] = existing_field_descriptions
-        self._output_dictionary()
