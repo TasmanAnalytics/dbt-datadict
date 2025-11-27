@@ -119,7 +119,7 @@ def output_model_file(yaml_obj, file_path, model_yaml, sort) -> None:
         logging.info(f"Updated model file '{file_path}'")
 
 
-def list_directory_files(directory, extensions) -> dict:
+def list_directory_files(directory, extensions) -> list | None:
     """
     Lists all files with the provided extensions in the specified directory and its subdirectories.
 
