@@ -126,7 +126,7 @@ def test__model_yaml_files_can_be_output(
         ]
     }
     test_file_path = str(temp_dir / "test_output_model.yaml")
-    utils.output_model_file(yaml_obj, test_file_path, model_yaml, False)
+    utils.output_model_file(test_file_path, model_yaml, False)
 
     assert os.path.exists(test_file_path)
 

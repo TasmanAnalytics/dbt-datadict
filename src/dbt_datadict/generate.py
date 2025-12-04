@@ -9,7 +9,7 @@ from dbt_datadict import (
 )
 
 
-def check_files_for_models(yaml_obj, files) -> dict:
+def check_files_for_models(files: list[str]) -> dict | None:
     try:
         file_yamls = []
         model_list = []
@@ -38,7 +38,7 @@ def check_files_for_models(yaml_obj, files) -> dict:
         )
 
 
-def combine_column_lists(current_yml, expected_yml) -> dict:  # noqa: PLR0912
+def combine_column_lists(current_yml: dict, expected_yml: dict) -> dict:  # noqa: PLR0912
     updated = False
     combined_yaml = current_yml.copy()
     existing_columns = combined_yaml.setdefault("columns", [])
@@ -126,11 +126,10 @@ def combine_column_lists(current_yml, expected_yml) -> dict:  # noqa: PLR0912
 
 
 def updated_existing_files(
-    yaml_obj,
-    existing_file_yamls,
-    models_to_be_updated,
-    sort,
-):
+    existing_file_yamls: list[dict],
+    models_to_be_updated: list[dict],
+    sort: bool,
+) -> None:
     # loop through each existing file
     updated_count = 0
     for file in existing_file_yamls:
@@ -157,14 +156,18 @@ def updated_existing_files(
                             logging.info(f"Model {model['name']} is correct")
 
             if updated_count > 0:
-                utils.output_model_file(yaml_obj, path, file_yaml, sort)
+                utils.output_model_file(path, file_yaml, sort)
         except Exception as error:
             logging.error(
                 f"There was an issue processing file '{path}'. This is likely a badly formatted YAML file. Error: {error}"
             )
 
 
-def add_missing_models(yaml_obj, path, models, sort):
+def add_missing_models(
+    path: str,
+    models: list[dict],
+    sort: bool,
+) -> None:
     if os.path.isfile(path) and os.path.exists(path):
         yaml = utils.open_model_yml_file(path)
         if yaml["status"] == "valid":
@@ -174,7 +177,7 @@ def add_missing_models(yaml_obj, path, models, sort):
             updated = yaml["yaml"]
             if len(models) > 0:
                 updated["models"] = updated["models"] + models
-                utils.output_model_file(yaml_obj, path, updated, sort)
+                utils.output_model_file(path, updated, sort)
             else:
                 logging.info(f"No updates to apply to '{path}'")
         else:
@@ -184,22 +187,20 @@ def add_missing_models(yaml_obj, path, models, sort):
     else:
         logging.info(f"File '{path}' doesn't exist and will be created.")
         file_yaml = {"version": 2, "models": models}
-        utils.output_model_file(yaml_obj, path, file_yaml, sort)
+        utils.output_model_file(path, file_yaml, sort)
 
 
 def yaml_for_each_model(
-    yaml_obj,
-    model_file_list,
-    existing_file_yamls,
-    existing_model_list,
-    models_to_be_added,
-):
+    model_file_list: list[str],
+    existing_file_yamls: list[dict],
+    existing_model_list: list[dict],
+    models_to_be_added: list[dict],
+) -> None:
     """
     Check for each model if the current YAML file matches the expected YAML file. The expected YAML
     file has the same name as the model file, but with a .yml extension.
 
     Parameters:
-        yaml_obj (object): The YAML object.
         model_file_list (list): List of model file paths.
         existing_file_yamls (list): List of dictionaries with existing file YAMLs.
         existing_model_list (list): List of dictionaries with with existing models.
@@ -255,7 +256,7 @@ def yaml_for_each_model(
             model_to_write = {"version": 2, "models": [model_to_write]}
 
             utils.output_model_file(
-                yaml_obj, model["expected_yml_path"], model_to_write, sort=False
+                model["expected_yml_path"], model_to_write, sort=False
             )
 
             if model["file"] is not None:
@@ -271,7 +272,12 @@ def yaml_for_each_model(
         os.remove(file)
 
 
-def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
+def generate_model_yamls(
+    directory: str,
+    name: str,
+    unique_model_yaml: bool,
+    sort: bool = True,
+) -> None:
     """
     Generate model YAML files in a given directory.
 
@@ -283,6 +289,8 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
         directory (str): The directory where the model YAML files are located, and where new files will be created.
 
         name (str): The base name of the new YAML file to be created for models missing from existing files.
+
+        unique_model_yaml (bool): Whether to create a unique YAML file for each model.
 
         sort (bool, optional): Whether to sort the models alphabetically by their name. Default is False.
 
@@ -317,7 +325,7 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
         )
         if len(yaml_file_list) == 0:
             SystemExit
-        existing_files = check_files_for_models(yaml_obj, yaml_file_list)
+        existing_files = check_files_for_models(yaml_file_list)
         existing_model_list = existing_files["model_list"]
         existing_file_yamls = existing_files["file_yamls"]
 
@@ -351,7 +359,7 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
                 f"There are {len(models_to_be_updated)} models to be checked"
             )
             updated_existing_files(
-                yaml_obj, existing_file_yamls, models_to_be_updated, sort
+                existing_file_yamls, models_to_be_updated, sort
             )
         else:
             logging.info("There are no models requiring updating.")
@@ -359,7 +367,6 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
         # 6. For models missing from existing files, create a new file with the given name and output the metadata
         if unique_model_yaml:
             yaml_for_each_model(
-                yaml_obj,
                 model_file_list,
                 existing_file_yamls,
                 existing_model_list,
@@ -370,7 +377,7 @@ def generate_model_yamls(directory, name, unique_model_yaml, sort=True):
             logging.info(
                 f"There are {len(models_to_be_added)} models to be added to file '{file_name}'"
             )
-            add_missing_models(yaml_obj, file_name, models_to_be_added, sort)
+            add_missing_models(file_name, models_to_be_added, sort)
         else:
             logging.info("There are no models to be added.")
 

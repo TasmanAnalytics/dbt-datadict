@@ -159,9 +159,7 @@ def apply_data_dictionary_to_file(
         try:
             updates = dictionary_updater(model_yaml["yaml"], file_path)
             if updates["updated"]:
-                utils.output_model_file(
-                    utils.YAML, file_path, updates["model_yaml"], False
-                )
+                utils.output_model_file(file_path, updates["model_yaml"], False)
                 logging.info(f"File {file_path} has been updated")
             else:
                 logging.info(f"No updates found for file '{file_path}'")
