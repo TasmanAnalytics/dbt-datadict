@@ -52,7 +52,7 @@ repos:
     hooks:
       - id: pytest
         name: Run unit tests
-        entry: pytest tests --quiet
+        entry: uv run pytest tests --quiet
         stages: ["pre-push"]
         language: system
         pass_filenames: false
