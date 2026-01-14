@@ -7,7 +7,7 @@ uv: ## Install uv
 		curl -LsSf https://astral.sh/uv/install.sh | sh;\
 	fi
 	uv sync --all-groups
-	pre-commit install --install-hooks
+	uv run pre-commit install --install-hooks
 
 publish-test: build ##& Publish the datadict Python package to Test PyPI
 	uv publish --index testpypi
