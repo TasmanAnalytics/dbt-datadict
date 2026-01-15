@@ -152,7 +152,7 @@ def list_directory_files(
                 f"Found {len(files_list)} files in the directory '{directory}' with extensions: {', '.join(extensions)}"
             )
         else:
-            logging.error(f"Directory '{directory}' doesn't existing.")
+            logging.error(f"Directory '{directory}' doesn't exist.")
         return files_list
 
     except Exception as e:

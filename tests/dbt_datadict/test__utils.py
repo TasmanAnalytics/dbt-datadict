@@ -13,13 +13,36 @@ from dbt_datadict import utils
 @pytest.mark.parametrize(
     "base_dict, key, value, index, expected",
     [
-        ({}, "a", 1, 0, {"a": 1}),
-        ({"b": 2}, "a", 1, 0, {"a": 1, "b": 2}),
+        # Insert into an empty dict at index 0
+        (
+            {},
+            "a",
+            1,
+            0,
+            {"a": 1},
+        ),
+        # Insert into an existing dict at index 1 (rightmost index)
+        (
+            {"b": 2},
+            "a",
+            1,
+            0,
+            {"a": 1, "b": 2},
+        ),
+        # Insert into an existing dict at index 1 (middle index)
         (
             {"a": 1, "c": 3},
             "b",
             2,
             1,
+            {"a": 1, "b": 2, "c": 3},
+        ),
+        # Insert into an existing dict at index 2 (rightmost index)
+        (
+            {"a": 1, "b": 2},
+            "c",
+            3,
+            2,
             {"a": 1, "b": 2, "c": 3},
         ),
     ],
@@ -181,7 +204,7 @@ def test__listing_files_in_non_existent_dir_logs_error(
     """
 
     directory = "/path/to/non-existent-directory"
-    error_msg = f"Directory '{directory}' doesn't existing"
+    error_msg = f"Directory '{directory}' doesn't exist"
     with caplog.at_level(logging.ERROR):
         files = utils.list_directory_files(directory, [])
         assert files == []
