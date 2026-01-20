@@ -1,9 +1,64 @@
+import logging
 import os
 import pathlib
+from collections.abc import Hashable
+from typing import Any
 
+import pytest
 import ruamel.yaml
 
 from dbt_datadict import utils
+
+
+@pytest.mark.parametrize(
+    "base_dict, key, value, index, expected",
+    [
+        # Insert into an empty dict at index 0
+        (
+            {},
+            "a",
+            1,
+            0,
+            {"a": 1},
+        ),
+        # Insert into an existing dict at index 1 (rightmost index)
+        (
+            {"b": 2},
+            "a",
+            1,
+            0,
+            {"a": 1, "b": 2},
+        ),
+        # Insert into an existing dict at index 1 (middle index)
+        (
+            {"a": 1, "c": 3},
+            "b",
+            2,
+            1,
+            {"a": 1, "b": 2, "c": 3},
+        ),
+        # Insert into an existing dict at index 2 (rightmost index)
+        (
+            {"a": 1, "b": 2},
+            "c",
+            3,
+            2,
+            {"a": 1, "b": 2, "c": 3},
+        ),
+    ],
+)
+def test__dict_items_can_be_inserted(
+    base_dict: dict,
+    key: Hashable,
+    value: Any,
+    index: int,
+    expected: dict,
+):
+    """
+    Items can be inserted into a dict at a specific index.
+    """
+
+    assert utils.insert_dict_item(base_dict, key, value, index) == expected
 
 
 def test__valid_yaml_files_can_be_opened(
@@ -94,7 +149,7 @@ def test__model_yaml_files_can_be_output(
         ]
     }
     test_file_path = str(temp_dir / "test_output_model.yaml")
-    utils.output_model_file(yaml_obj, test_file_path, model_yaml, False)
+    utils.output_model_file(test_file_path, model_yaml, False)
 
     assert os.path.exists(test_file_path)
 
@@ -138,6 +193,39 @@ def test__dictionary_files_can_be_listed(
         if file.endswith(tuple(extensions))
     ]
     assert yaml_files_list.sort() == expected_yaml_files.sort()
+
+
+def test__listing_files_in_non_existent_dir_logs_error(
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Listing files in a non-existent directory logs an error (but does not raise
+    an exception).
+    """
+
+    directory = "/path/to/non-existent-directory"
+    error_msg = f"Directory '{directory}' doesn't exist"
+    with caplog.at_level(logging.ERROR):
+        files = utils.list_directory_files(directory, [])
+        assert files == []
+        assert error_msg in caplog.text
+
+
+def test__listing_files_in_invalid_dir_logs_error(
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Listing files in an invalid directory logs an error (but does not raise
+    an exception).
+    """
+
+    error_msg = (
+        "Issues encountered when trying to search directory for yaml files"
+    )
+    with caplog.at_level(logging.ERROR):
+        files = utils.list_directory_files(None, [])  # type: ignore
+        assert files is None
+        assert error_msg in caplog.text
 
 
 def test__model_files_can_be_sorted():

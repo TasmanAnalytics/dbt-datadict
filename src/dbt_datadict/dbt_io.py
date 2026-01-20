@@ -4,7 +4,7 @@ import subprocess
 import ruamel.yaml
 
 
-def parse_bash_outputs(input_string) -> str:
+def parse_bash_outputs(input_string: str) -> str | None:
     """
     This function parses the bash output represented by `input_string`, extracts and returns the portion of the
     output starting from the occurrence of the substring 'version: 2' to the end.
@@ -82,7 +82,7 @@ def validate_dbt() -> bool:
         return False
 
 
-def get_model_yaml(model_names) -> str:
+def get_model_yaml(model_names: list[str]) -> dict | None:
     """
     Generates the base model YAML for the specified model names.
 
@@ -100,7 +100,7 @@ def get_model_yaml(model_names) -> str:
         model_names (list): A list of model names for which the base model YAML needs to be generated.
 
     Returns:
-        str: The generated base model YAML as a string.
+        dict: The generated base model YAML as a dict.
 
     Note:
         To use this function, the dbt CLI must be installed and accessible in the environment where this function is run.

@@ -30,7 +30,7 @@ def insert_dict_item(
     return dict(zip(keys, values))
 
 
-def add_spaces_between_cols(file):
+def add_spaces_between_cols(file: str) -> None:
     """
     Add spaces between columns in a YAML file.
 
@@ -52,7 +52,7 @@ def add_spaces_between_cols(file):
         f.write(replaced)
 
 
-def open_model_yml_file(file_path) -> dict:
+def open_model_yml_file(file_path: str) -> dict:
     """
     Open and load a model YAML file for processing.
 
@@ -75,7 +75,7 @@ def open_model_yml_file(file_path) -> dict:
         return {"status": "invalid", "yaml": None}
 
 
-def check_valid_model_file(model_yaml) -> bool:
+def check_valid_model_file(model_yaml: dict) -> bool:
     """
     Check if the parsed YAML data represents a valid model.
 
@@ -83,7 +83,7 @@ def check_valid_model_file(model_yaml) -> bool:
     key, indicating that it represents a valid model file.
 
     Parameters:
-        yaml (dict): The parsed YAML data.
+        model_yaml (dict): The parsed YAML data.
 
     Returns:
         bool: True if the YAML data contains the required 'models' key, False otherwise.
@@ -95,7 +95,11 @@ def check_valid_model_file(model_yaml) -> bool:
         return False
 
 
-def output_model_file(yaml_obj, file_path, model_yaml, sort) -> None:
+def output_model_file(
+    file_path: str,
+    model_yaml: dict,
+    sort: bool,
+) -> None:
     """
     Output the updated model YAML data to a file.
 
@@ -105,6 +109,7 @@ def output_model_file(yaml_obj, file_path, model_yaml, sort) -> None:
     Parameters:
         file_path (str): The path to the file where the updated model YAML should be written.
         model_yaml (dict): The updated model YAML data to be written to the file.
+        sort (bool): Whether to sort the model file.
 
     Returns:
         None
@@ -115,11 +120,14 @@ def output_model_file(yaml_obj, file_path, model_yaml, sort) -> None:
     else:
         output_yaml = model_yaml
     with open(file_path, "w") as file:
-        yaml_obj.dump(output_yaml, file)
+        YAML.dump(output_yaml, file)
         logging.info(f"Updated model file '{file_path}'")
 
 
-def list_directory_files(directory, extensions) -> dict:
+def list_directory_files(
+    directory: str,
+    extensions: list[str],
+) -> list | None:
     """
     Lists all files with the provided extensions in the specified directory and its subdirectories.
 
@@ -144,7 +152,7 @@ def list_directory_files(directory, extensions) -> dict:
                 f"Found {len(files_list)} files in the directory '{directory}' with extensions: {', '.join(extensions)}"
             )
         else:
-            logging.error(f"Directory '{directory}' doesn't existing.")
+            logging.error(f"Directory '{directory}' doesn't exist.")
         return files_list
 
     except Exception as e:
@@ -153,7 +161,7 @@ def list_directory_files(directory, extensions) -> dict:
         )
 
 
-def sort_model_file(file_yaml) -> dict:
+def sort_model_file(file_yaml: dict) -> dict:
     """
     Sorts the dictionary of models by the column names within each model alphabetically.
 
@@ -176,8 +184,6 @@ def sort_model_file(file_yaml) -> dict:
             )
 
     # Sort the models by name
-    file_yaml["models"] = sorted(
-        file_yaml["models"], key=lambda model: model["name"]
-    )
+    file_yaml["models"] = sorted(file_yaml["models"], key=lambda m: m["name"])
 
     return file_yaml
