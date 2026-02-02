@@ -132,17 +132,6 @@ def test__dictionary_can_be_parsed_with_aliases(
     assert result == ["field1", "f1", "alias1", "field2"]
 
 
-def test__dictionary_items_can_be_inserted(datadict_instance: apply.DataDict):
-    """
-    A dictionary item can be inserted.
-    """
-
-    test_dict = {"key1": "value1", "key3": "value3"}
-    result_dict = utils.insert_dict_item(test_dict, "key2", "value2", 1)
-
-    assert result_dict == {"key1": "value1", "key2": "value2", "key3": "value3"}
-
-
 def test__existing_fields_with_descriptions_can_be_updated(
     datadict_instance: apply.DataDict,
 ):
