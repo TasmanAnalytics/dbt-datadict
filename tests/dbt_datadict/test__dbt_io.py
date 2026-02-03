@@ -78,7 +78,7 @@ def test__bash_output_can_be_parsed(in_: str, expected: str):
 @pytest.mark.skip(
     "This is what I'd expect the logging to do, but it actually raises _another_ error (see test below)"
 )
-def test__parsing_with_exception_logs_error(
+def test__parse_bash_outputs__exception_raised__error_logged(
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -96,7 +96,7 @@ def test__parsing_with_exception_logs_error(
     assert error_msg in caplog.text
 
 
-def test__parsing_with_exception_raises_another_exception(
+def test__parse_bash_outputs__exception_raised__different_exception_raised(
     capsys: pytest.CaptureFixture,
 ):
     """
@@ -118,57 +118,7 @@ class MockCompletedProcess:
         self.stdout = types.SimpleNamespace(decode=lambda _: returns)
 
 
-def test__failed_dbt_debug_logs_error(
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-):
-    """
-    If the ``dbt debug`` command is unsuccessful, the validation returns
-    ``False`` and logs an error.
-    """
-
-    import subprocess  # noqa: PLC0415
-
-    def mock_run(args, **kwargs):  # noqa: unused variables
-        return MockCompletedProcess("debug failed!")
-
-    monkeypatch.setattr(subprocess, "run", mock_run)
-
-    error_msg = "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
-    with caplog.at_level(logging.ERROR):
-        result = dbt_io.validate_dbt()
-
-    assert result == False
-    assert error_msg in caplog.text
-
-
-def test__failed_dbt_deps_logs_error(
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-):
-    """
-    If the ``dbt deps`` command is unsuccessful, the validation returns
-    ``False`` and logs an error.
-    """
-
-    import subprocess  # noqa: PLC0415
-
-    def mock_run(args, **kwargs):  # noqa: unused variables
-        if args == ["dbt", "debug"]:
-            return MockCompletedProcess("All checks passed!")
-        return MockCompletedProcess("deps failed!")
-
-    monkeypatch.setattr(subprocess, "run", mock_run)
-
-    error_msg = "dbt-labs/codegen is required to perform this operation"
-    with caplog.at_level(logging.ERROR):
-        result = dbt_io.validate_dbt()
-
-    assert result == False
-    assert error_msg in caplog.text
-
-
-def test__dbt_validation_passes_on_successful_debug_and_deps(
+def test__validate_dbt__happy_path__true_returned(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
@@ -194,10 +144,60 @@ def test__dbt_validation_passes_on_successful_debug_and_deps(
     assert info_msg in caplog.text
 
 
+def test__validate_dbt__dbt_debug_fails__false_returned(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If the ``dbt debug`` command is unsuccessful, the validation returns
+    ``False`` and logs an error.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        return MockCompletedProcess("debug failed!")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.validate_dbt()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
+def test__validate_dbt__dbt_deps_fails__false_returned(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If the ``dbt deps`` command is unsuccessful, the validation returns
+    ``False`` and logs an error.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        if args == ["dbt", "debug"]:
+            return MockCompletedProcess("All checks passed!")
+        return MockCompletedProcess("deps failed!")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "dbt-labs/codegen is required to perform this operation"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.validate_dbt()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
 @pytest.mark.skip(
     "This is what I'd expect the logging to do, but it actually raises _another_ error (see test below)"
 )
-def test__dbt_validation_fails_and_logs_exceptions(
+def test__validate_dbt__exception_raised__false_returned(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
@@ -209,11 +209,13 @@ def test__dbt_validation_fails_and_logs_exceptions(
     import subprocess  # noqa: PLC0415
 
     def mock_run(args, **kwargs):  # noqa: unused variables
-        raise Exception
+        raise Exception("something broke")
 
     monkeypatch.setattr(subprocess, "run", mock_run)
 
-    error_msg = "Issues encountered when attempting to validate dbt:"
+    error_msg = (
+        "Issues encountered when attempting to validate dbt: something broke"
+    )
     with caplog.at_level(logging.ERROR):
         result = dbt_io.validate_dbt()
 
@@ -221,7 +223,7 @@ def test__dbt_validation_fails_and_logs_exceptions(
     assert error_msg in caplog.text
 
 
-def test__dbt_validation_fails_and_raises_another_exceptions(
+def test__validate_dbt__exception_raised__different_exception_raised(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
@@ -246,7 +248,7 @@ def test__dbt_validation_fails_and_raises_another_exceptions(
         dbt_io.validate_dbt()
 
 
-def test__model_yaml_can_be_generated(
+def test__get_model_yaml__happy_path__model_yaml_returned_as_dict(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
@@ -298,7 +300,7 @@ def test__model_yaml_can_be_generated(
     assert model_yaml == expected_yaml
 
 
-def test__model_yaml_compilation_error_logs_error(
+def test__get_model_yaml__compilation_error__no_data_returned(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
@@ -323,7 +325,7 @@ def test__model_yaml_compilation_error_logs_error(
     assert error_msg in caplog.text
 
 
-def test__model_yaml_exceptions_log_error(
+def test__get_model_yaml__exception_raised__no_data_returned(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):

@@ -173,7 +173,7 @@ def test__dictionary_can_be_parsed_with_aliases(
     assert result == ["field1", "f1", "alias1", "field2"]
 
 
-def test__parsing_invalid_dictionary_logs_error(
+def test__parse_aliases__invalid_dictionary__no_data_returned(
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -190,7 +190,7 @@ def test__parsing_invalid_dictionary_logs_error(
         assert error_msg in caplog.text
 
 
-def test__formatting_dictionary_with_missing_key_logs_error(
+def test__format_dictionary__missing_dictionary_key__dict_with_empty_list_for_dictionary_key_returned(
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -200,11 +200,11 @@ def test__formatting_dictionary_with_missing_key_logs_error(
     Future refactoring should result in this test being binned.
     """
 
-    result = apply._format_dictionary({})
-    assert result == {"dictionary": []}
+    result = apply._format_dictionary({"foo": "bar"})
+    assert result == {"dictionary": [], "foo": "bar"}
 
 
-def test__formatting_invalid_dictionary_logs_error(
+def test__format_dictionary__invalid_dictionary__no_data_returned(
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -400,7 +400,7 @@ def test__dictionary_can_be_applied_to_a_model(
     assert updated_yaml == expected_yaml
 
 
-def test__dictionary_is_not_applied_to_updated_model(
+def test__apply_data_dictionary_to_file__up_to_date_model__model_is_unchanged(
     caplog: pytest.LogCaptureFixture,
     temp_dir: pathlib.Path,
     datadict_instance: apply.DataDict,
@@ -437,7 +437,7 @@ def test__dictionary_is_not_applied_to_updated_model(
     assert info_msg in caplog.text
 
 
-def test__applying_to_missing_file_logs_error(
+def test__apply_data_dictionary_to_file__missing_file__error_logged(
     caplog: pytest.LogCaptureFixture,
     valid_model: ValidModel,
 ):
@@ -457,7 +457,7 @@ def test__applying_to_missing_file_logs_error(
         assert error_msg in caplog.text
 
 
-def test__applying_with_exception_logs_error(
+def test__apply_data_dictionary_to_file__exception_raised__error_logged(
     caplog: pytest.LogCaptureFixture,
     valid_model: ValidModel,
 ):
@@ -469,10 +469,10 @@ def test__applying_with_exception_logs_error(
     """
 
     def mock_dict_updater(_: dict, __: str) -> dict:
-        raise Exception("Something broke")
+        raise Exception("something broke")
 
     file_path, _ = valid_model
-    error_msg = f"Error processing file '{file_path}'. Error: Something broke"
+    error_msg = f"Error processing file '{file_path}'. Error: something broke"
     with caplog.at_level(logging.ERROR):
         apply.apply_data_dictionary_to_file(str(file_path), mock_dict_updater)
         assert error_msg in caplog.text
@@ -540,7 +540,7 @@ def test__dictionary_can_be_applied_to_multiple_models(
     assert updated_yaml2 == expected_yaml2
 
 
-def test__applying_dictionary_to_missing_path_logs_error(
+def test__apply_data_dictionary_to_path__missing_path__error_logged(
     caplog: pytest.LogCaptureFixture,
     datadict_instance: apply.DataDict,
 ):
@@ -563,7 +563,7 @@ def test__applying_dictionary_to_missing_path_logs_error(
     assert error_msg in caplog.text
 
 
-def test__updating_model_adds_missing_description(
+def test__iterate_dictionary_update__model_missing_attributes__model_contains_attributes(
     caplog: pytest.LogCaptureFixture,
     temp_dir: pathlib.Path,
 ):
@@ -609,7 +609,7 @@ def test__updating_model_adds_missing_description(
     assert result == expected_result
 
 
-def test__updating_model_without_columns_logs_warning(
+def test__iterate_dictionary_update__model_without_columns__warning_logged(
     caplog: pytest.LogCaptureFixture,
     temp_dir: pathlib.Path,
     datadict_instance: apply.DataDict,
@@ -667,7 +667,7 @@ def test__missing_fields_can_be_collated(
     assert new_dict["dictionary"] == expected_missing_fields
 
 
-def test__collating_with_exception_logs_error(
+def test__collate_output_dictionary__exception_raised__error_logged(
     caplog: pytest.LogCaptureFixture,
     datadict_instance: apply.DataDict,
 ):
