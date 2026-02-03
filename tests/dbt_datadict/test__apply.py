@@ -1,19 +1,22 @@
 import logging
 import os
 import pathlib
-from typing import Any, TypeAlias
+from typing import TypeAlias
 
 import pytest
+from ruamel.yaml.compat import StreamType
 
 from dbt_datadict import apply, utils
 
+ValidModel: TypeAlias = tuple[pathlib.Path, dict]
 
-def _yaml_dumps(content: Any, path: pathlib.Path) -> None:
+
+def _yaml_dumps(content: StreamType, path: pathlib.Path) -> None:
     with open(path, "w") as f:
         utils.YAML.dump(content, f)
 
 
-def _yaml_loads(path: pathlib.Path) -> Any:
+def _yaml_loads(path: pathlib.Path) -> StreamType:
     with open(path) as f:
         return utils.YAML.load(f)
 
@@ -37,9 +40,6 @@ def datadict_instance(dictionary_file: pathlib.Path) -> apply.DataDict:
     """
 
     return apply.DataDict(str(dictionary_file))
-
-
-ValidModel: TypeAlias = tuple[pathlib.Path, dict]
 
 
 @pytest.fixture(scope="function")
