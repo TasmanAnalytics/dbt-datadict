@@ -55,7 +55,7 @@ def valid_model(temp_dir: pathlib.Path) -> ValidModel:
                 "columns": [
                     {
                         "name": "field1",
-                        "description": "old_desc",
+                        "description": "Some description.",
                     },
                 ],
             },
