@@ -1,4 +1,7 @@
+import logging
 import textwrap
+import types
+from typing import Any
 
 import pytest
 
@@ -70,3 +73,275 @@ def test__bash_output_can_be_parsed(in_: str, expected: str):
     result = dbt_io.parse_bash_outputs(in_)
 
     assert result == expected
+
+
+@pytest.mark.skip(
+    "This is what I'd expect the logging to do, but it actually raises _another_ error (see test below)"
+)
+def test__parsing_with_exception_logs_error(
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When parsing bash output raises an exception, the exception is logged as
+    an error.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    error_msg = "There was an issue parsing the codegen outputs:"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.parse_bash_outputs(None)  # type: ignore
+
+    assert result is None
+    assert error_msg in caplog.text
+
+
+def test__parsing_with_exception_raises_another_exception(
+    capsys: pytest.CaptureFixture,
+):
+    """
+    This is just to "document" the existing behaviour, which I assume is not
+    intentional.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    with pytest.raises(
+        TypeError,
+        match=r'can only concatenate str \(not "AttributeError"\) to str',
+    ):
+        dbt_io.parse_bash_outputs(None)  # type: ignore
+
+
+class MockCompletedProcess:
+    def __init__(self, returns: Any):
+        self.stdout = types.SimpleNamespace(decode=lambda _: returns)
+
+
+def test__failed_dbt_debug_logs_error(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If the ``dbt debug`` command is unsuccessful, the validation returns
+    ``False`` and logs an error.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        return MockCompletedProcess("debug failed!")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.validate_dbt()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
+def test__failed_dbt_deps_logs_error(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If the ``dbt deps`` command is unsuccessful, the validation returns
+    ``False`` and logs an error.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        if args == ["dbt", "debug"]:
+            return MockCompletedProcess("All checks passed!")
+        return MockCompletedProcess("deps failed!")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "dbt-labs/codegen is required to perform this operation"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.validate_dbt()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
+def test__dbt_validation_passes_on_successful_debug_and_deps(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If the `dbt debug` command is unsuccessful, the validation returns
+    ``False`` and logs an error.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        if args == ["dbt", "debug"]:
+            return MockCompletedProcess("All checks passed!")
+        return MockCompletedProcess("dbt-labs/codegen")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    info_msg = "dbt project successfully validated"
+    with caplog.at_level(logging.INFO):
+        result = dbt_io.validate_dbt()
+
+    assert result == True
+    assert info_msg in caplog.text
+
+
+@pytest.mark.skip(
+    "This is what I'd expect the logging to do, but it actually raises _another_ error (see test below)"
+)
+def test__dbt_validation_fails_and_logs_exceptions(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If any part of the validation raises an exception, the validation
+    returns ``False`` and logs and error.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        raise Exception
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "Issues encountered when attempting to validate dbt:"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.validate_dbt()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
+def test__dbt_validation_fails_and_raises_another_exceptions(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    This is just to "document" the existing behaviour, which I assume is not
+    intentional.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        raise Exception
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    with pytest.raises(
+        TypeError,
+        match=r'can only concatenate str \(not "Exception"\) to str',
+    ):
+        dbt_io.validate_dbt()
+
+
+def test__model_yaml_can_be_generated(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Model YAML can be generated.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    mock_generated_model_yaml = textwrap.dedent(
+        """\
+        12:34:56  Running with dbt=1.2.3
+        12:34:57  Registered adapter: foobar=7.8.9
+        12:34:58  Found 4 models, 1 operation, 8 data tests, 123 macros
+        version: 2
+        models:
+          - name: foo
+            description: This is a test model.
+            columns:
+              - name: bar
+                data_type: string
+                description: This is a test column.
+        """
+    )
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        return MockCompletedProcess(mock_generated_model_yaml)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    model_yaml = dbt_io.get_model_yaml(model_names=["foo"])
+    expected_yaml = {
+        "version": 2,
+        "models": [
+            {
+                "name": "foo",
+                "description": "This is a test model.",
+                "columns": [
+                    {
+                        "name": "bar",
+                        "data_type": "string",
+                        "description": "This is a test column.",
+                    },
+                ],
+            },
+        ],
+    }
+
+    assert model_yaml == expected_yaml
+
+
+def test__model_yaml_compilation_error_logs_error(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Model YAML can be generated.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        return MockCompletedProcess("Compilation Error")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = (
+        "Issues encountered when generating the model yaml: Compilation Error"
+    )
+    with caplog.at_level(logging.ERROR):
+        model_yaml = dbt_io.get_model_yaml(model_names=["foo"])
+
+    assert model_yaml is None
+    assert error_msg in caplog.text
+
+
+def test__model_yaml_exceptions_log_error(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    If any part of the YAML generation raises an exception, the exception is
+    logged.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        raise Exception("something went wrong")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "Issues encountered when generating the model yaml: something went wrong"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.get_model_yaml(model_names=["foo"])
+
+    assert result is None
+    assert error_msg in caplog.text
