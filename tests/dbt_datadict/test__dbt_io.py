@@ -203,7 +203,7 @@ def test__validate_dbt__exception_raised__false_returned(
 ):
     """
     If any part of the validation raises an exception, the validation
-    returns ``False`` and logs and error.
+    returns ``False`` and logs an error.
     """
 
     import subprocess  # noqa: PLC0415
@@ -305,7 +305,8 @@ def test__get_model_yaml__compilation_error__no_data_returned(
     caplog: pytest.LogCaptureFixture,
 ):
     """
-    Model YAML can be generated.
+    If the YAML generation encounters a compilation error, no YAML dict is
+    returned and the error is logged.
     """
 
     import subprocess  # noqa: PLC0415
