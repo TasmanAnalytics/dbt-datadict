@@ -1,4 +1,5 @@
 import logging
+import subprocess
 import textwrap
 import types
 from typing import Any
@@ -127,8 +128,6 @@ def test__validate_dbt__happy_path__true_returned(
     ``False`` and logs an error.
     """
 
-    import subprocess  # noqa: PLC0415
-
     def mock_run(args, **kwargs):  # noqa: unused variables
         if args == ["dbt", "debug"]:
             return MockCompletedProcess("All checks passed!")
@@ -153,8 +152,6 @@ def test__validate_dbt__dbt_debug_fails__false_returned(
     ``False`` and logs an error.
     """
 
-    import subprocess  # noqa: PLC0415
-
     def mock_run(args, **kwargs):  # noqa: unused variables
         return MockCompletedProcess("debug failed!")
 
@@ -176,8 +173,6 @@ def test__validate_dbt__dbt_deps_fails__false_returned(
     If the ``dbt deps`` command is unsuccessful, the validation returns
     ``False`` and logs an error.
     """
-
-    import subprocess  # noqa: PLC0415
 
     def mock_run(args, **kwargs):  # noqa: unused variables
         if args == ["dbt", "debug"]:
@@ -206,8 +201,6 @@ def test__validate_dbt__exception_raised__false_returned(
     returns ``False`` and logs an error.
     """
 
-    import subprocess  # noqa: PLC0415
-
     def mock_run(args, **kwargs):  # noqa: unused variables
         raise Exception("something broke")
 
@@ -234,8 +227,6 @@ def test__validate_dbt__exception_raised__different_exception_raised(
     Future refactoring should result in this test being binned.
     """
 
-    import subprocess  # noqa: PLC0415
-
     def mock_run(args, **kwargs):  # noqa: unused variables
         raise Exception
 
@@ -255,8 +246,6 @@ def test__get_model_yaml__happy_path__model_yaml_returned_as_dict(
     """
     Model YAML can be generated.
     """
-
-    import subprocess  # noqa: PLC0415
 
     mock_generated_model_yaml = textwrap.dedent(
         """\
@@ -309,8 +298,6 @@ def test__get_model_yaml__compilation_error__no_data_returned(
     returned and the error is logged.
     """
 
-    import subprocess  # noqa: PLC0415
-
     def mock_run(args, **kwargs):  # noqa: unused variables
         return MockCompletedProcess("Compilation Error")
 
@@ -334,8 +321,6 @@ def test__get_model_yaml__exception_raised__no_data_returned(
     If any part of the YAML generation raises an exception, the exception is
     logged.
     """
-
-    import subprocess  # noqa: PLC0415
 
     def mock_run(args, **kwargs):  # noqa: unused variables
         raise Exception("something went wrong")
