@@ -1,9 +1,24 @@
+import logging
 import os
 import pathlib
+from typing import TypeAlias
 
 import pytest
+from ruamel.yaml.compat import StreamType
 
 from dbt_datadict import apply, utils
+
+ValidModel: TypeAlias = tuple[pathlib.Path, dict]
+
+
+def _yaml_dumps(content: StreamType, path: pathlib.Path) -> None:
+    with open(path, "w") as f:
+        utils.YAML.dump(content, f)
+
+
+def _yaml_loads(path: pathlib.Path) -> StreamType:
+    with open(path) as f:
+        return utils.YAML.load(f)
 
 
 @pytest.fixture(scope="function")
@@ -25,6 +40,32 @@ def datadict_instance(dictionary_file: pathlib.Path) -> apply.DataDict:
     """
 
     return apply.DataDict(str(dictionary_file))
+
+
+@pytest.fixture(scope="function")
+def valid_model(temp_dir: pathlib.Path) -> ValidModel:
+    """
+    A valid model's path and content.
+    """
+
+    model_yaml = {
+        "models": [
+            {
+                "name": "test_model",
+                "columns": [
+                    {
+                        "name": "field1",
+                        "description": "Some description.",
+                    },
+                ],
+            },
+        ],
+    }
+    model_yaml_file = temp_dir / "model_file.yml"
+    with open(model_yaml_file, "w") as file:
+        utils.YAML.dump(model_yaml, file)
+
+    return model_yaml_file, model_yaml
 
 
 def test__dictionary_can_be_loaded(dictionary_file: pathlib.Path):
@@ -132,15 +173,52 @@ def test__dictionary_can_be_parsed_with_aliases(
     assert result == ["field1", "f1", "alias1", "field2"]
 
 
-def test__dictionary_items_can_be_inserted(datadict_instance: apply.DataDict):
+def test__parse_aliases__invalid_dictionary__no_data_returned(
+    caplog: pytest.LogCaptureFixture,
+):
     """
-    A dictionary item can be inserted.
+    Attempting to parse an invalid dictionary which throws a ``TypeError``
+    is suppressed and logs an error instead.
+
+    Future refactoring should result in this test being binned.
     """
 
-    test_dict = {"key1": "value1", "key3": "value3"}
-    result_dict = utils.insert_dict_item(test_dict, "key2", "value2", 1)
+    error_msg = "There was an error when trying to parse the dictionary"
+    with caplog.at_level(logging.INFO):
+        result = apply._parse_aliases(None)  # type: ignore
+        assert result is None
+        assert error_msg in caplog.text
 
-    assert result_dict == {"key1": "value1", "key2": "value2", "key3": "value3"}
+
+def test__format_dictionary__missing_dictionary_key__dict_with_empty_list_for_dictionary_key_returned(
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Attempting to format a dict with a missing ``dictionary`` key returns
+    the dict with the key set to an empty list.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    result = apply._format_dictionary({"foo": "bar"})
+    assert result == {"dictionary": [], "foo": "bar"}
+
+
+def test__format_dictionary__invalid_dictionary__no_data_returned(
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    Attempting to format an invalid dictionary which throws a ``TypeError``
+    is suppressed and logs an error instead.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    error_msg = "There was an error when trying to format the dictionary"
+    with caplog.at_level(logging.INFO):
+        result = apply._format_dictionary(None)  # type: ignore
+        assert result is None
+        assert error_msg in caplog.text
 
 
 def test__existing_fields_with_descriptions_can_be_updated(
@@ -322,6 +400,84 @@ def test__dictionary_can_be_applied_to_a_model(
     assert updated_yaml == expected_yaml
 
 
+def test__apply_data_dictionary_to_file__up_to_date_model__model_is_unchanged(
+    caplog: pytest.LogCaptureFixture,
+    temp_dir: pathlib.Path,
+    datadict_instance: apply.DataDict,
+):
+    """
+    A model YAML file is not changed if it is already up to date.
+    """
+
+    datadict_instance.dictionary_yml = {
+        "dictionary": [{"name": "field1", "description": "desc"}]
+    }
+    model_yaml = {
+        "models": [
+            {
+                "name": "test_model",
+                "columns": [{"name": "field1", "description": "desc"}],
+            }
+        ]
+    }
+    model_yaml_file = temp_dir / "model_file.yml"
+    info_msg = f"No updates found for file '{model_yaml_file}'"
+    with open(model_yaml_file, "w") as file:
+        utils.YAML.dump(model_yaml, file)
+
+    with caplog.at_level(logging.INFO):
+        apply.apply_data_dictionary_to_file(
+            str(model_yaml_file),
+            datadict_instance.iterate_dictionary_update,
+        )
+    with open(model_yaml_file) as file:
+        updated_yaml = utils.YAML.load(file)
+
+    assert updated_yaml == model_yaml
+    assert info_msg in caplog.text
+
+
+def test__apply_data_dictionary_to_file__missing_file__error_logged(
+    caplog: pytest.LogCaptureFixture,
+    valid_model: ValidModel,
+):
+    """
+    Applying the data dictionary to a missing file logs an error.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    def mock_dict_updater(_: dict, __: str) -> dict:
+        raise FileNotFoundError
+
+    file_path, _ = valid_model
+    error_msg = f"File '{file_path}' not found."
+    with caplog.at_level(logging.ERROR):
+        apply.apply_data_dictionary_to_file(str(file_path), mock_dict_updater)
+        assert error_msg in caplog.text
+
+
+def test__apply_data_dictionary_to_file__exception_raised__error_logged(
+    caplog: pytest.LogCaptureFixture,
+    valid_model: ValidModel,
+):
+    """
+    When applying the data dictionary raises an unhandled exception, the
+    exception is logged.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    def mock_dict_updater(_: dict, __: str) -> dict:
+        raise Exception("something broke")
+
+    file_path, _ = valid_model
+    error_msg = f"Error processing file '{file_path}'. Error: something broke"
+    with caplog.at_level(logging.ERROR):
+        apply.apply_data_dictionary_to_file(str(file_path), mock_dict_updater)
+        assert error_msg in caplog.text
+
+
 def test__dictionary_can_be_applied_to_multiple_models(
     temp_dir: pathlib.Path,
     datadict_instance: apply.DataDict,
@@ -329,6 +485,7 @@ def test__dictionary_can_be_applied_to_multiple_models(
     """
     A data dictionary can be applied to multiple model YAML files.
     """
+
     datadict_instance.dictionary_yml = {
         "dictionary": [{"name": "field1", "description": "new_desc"}]
     }
@@ -383,6 +540,99 @@ def test__dictionary_can_be_applied_to_multiple_models(
     assert updated_yaml2 == expected_yaml2
 
 
+def test__apply_data_dictionary_to_path__missing_path__error_logged(
+    caplog: pytest.LogCaptureFixture,
+    datadict_instance: apply.DataDict,
+):
+    """
+    Applying the data dictionary to a missing directory logs an error.
+    """
+
+    datadict_instance.dictionary_yml = {
+        "dictionary": [{"name": "field1", "description": "new_desc"}]
+    }
+
+    missing_dir = "some/missing/dir"
+    error_msg = f"Directory '{missing_dir}' doesn't exist or can't be found"
+    with caplog.at_level(logging.ERROR):
+        apply.apply_data_dictionary_to_path(
+            missing_dir,
+            datadict_instance.iterate_dictionary_update,
+        )
+
+    assert error_msg in caplog.text
+
+
+def test__iterate_dictionary_update__model_missing_attributes__model_contains_attributes(
+    caplog: pytest.LogCaptureFixture,
+    temp_dir: pathlib.Path,
+):
+    """
+    Applying a model update adds missing attributes to the model.
+    """
+
+    dictionary = {
+        "dictionary": [
+            {"name": "some_column", "description": "something awesome"}
+        ]
+    }
+    dictionary_file = temp_dir / "datadictionary.yml"
+    _yaml_dumps(dictionary, dictionary_file)
+    datadict = apply.DataDict(dictionary_file)
+
+    model_yaml = {
+        "models": [{"name": "some_model", "columns": [{"name": "some_column"}]}]
+    }
+    model_yaml_file = temp_dir / "models.yml"
+    _yaml_dumps(model_yaml, model_yaml_file)
+
+    result = datadict.iterate_dictionary_update(
+        model_yaml, str(model_yaml_file)
+    )
+    expected_result = {
+        "updated": True,
+        "model_yaml": {
+            "models": [
+                {
+                    "name": "some_model",
+                    "columns": [
+                        {
+                            "name": "some_column",
+                            "description": "something awesome",
+                        }
+                    ],
+                }
+            ]
+        },
+    }
+
+    assert result == expected_result
+
+
+def test__iterate_dictionary_update__model_without_columns__warning_logged(
+    caplog: pytest.LogCaptureFixture,
+    temp_dir: pathlib.Path,
+    datadict_instance: apply.DataDict,
+):
+    """
+    Applying a model update on a model with no columns logs a warning.
+    """
+
+    model_yaml = {"models": [{"name": "model_without_columns"}]}
+    model_yaml_file = temp_dir / "models.yml"
+    with open(model_yaml_file, "w") as file:
+        utils.YAML.dump(model_yaml, file)
+
+    warning_msg = f"No columns found for model model_without_columns in '{model_yaml_file}'"
+    with caplog.at_level(logging.WARNING):
+        result = datadict_instance.iterate_dictionary_update(
+            model_yaml, str(model_yaml_file)
+        )
+
+    assert result == {"updated": False}
+    assert warning_msg in caplog.text
+
+
 def test__missing_fields_can_be_collated(
     datadict_instance: apply.DataDict,
 ):
@@ -415,3 +665,22 @@ def test__missing_fields_can_be_collated(
         },
     ]
     assert new_dict["dictionary"] == expected_missing_fields
+
+
+def test__collate_output_dictionary__exception_raised__error_logged(
+    caplog: pytest.LogCaptureFixture,
+    datadict_instance: apply.DataDict,
+):
+    """
+    When collating the data dictionary raises an unhandled exception, the
+    exception is logged.
+
+    Future refactoring should result in this test being binned.
+    """
+
+    datadict_instance.dictionary_path = "something/broken"
+    error_msg = f"There was a problem updating dictionary at '{datadict_instance.dictionary_path}'."
+    with caplog.at_level(logging.ERROR):
+        datadict_instance.collate_output_dictionary()
+
+    assert error_msg in caplog.text
