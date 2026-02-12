@@ -4,37 +4,91 @@
 
 This is a Python project which uses [uv](https://github.com/astral-sh/uv) for package management.
 
-The [Makefile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/Makefile) has several commands to help with development tasks, such as:
+### Prerequisites: Installing Nix (Recommended)
+
+This project includes a Nix flake that provides a reproducible development environment with all required tools. We recommend using the [Determinate Systems Nix installer](https://determinate.systems/posts/determinate-nix-installer):
 
 ```shell
-make uv     # Install uv, sync dependencies, install pre-commit hooks
+# macOS, Linux, or WSL (Windows Subsystem for Linux)
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+```
+
+> [!NOTE]
+>
+> **Windows users:** We recommend using WSL (Windows Subsystem for Linux) to run Nix. Follow the [WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install) first, then install Nix inside your WSL environment.
+
+After installation, you may need to restart your terminal or reboot your system for the `nix` command to become available.
+
+### Quick Start: Using the Nix Flake (Recommended)
+
+Once Nix is installed, enter the development environment with:
+
+```shell
+nix develop -c $SHELL
+```
+
+This will:
+- Automatically install all required dependencies (Python, uv, git, etc.)
+- Set up the Python virtual environment using uv
+- Install pre-commit hooks
+- Launch your preferred shell (zsh, bash, fish, etc.)
+
+The [Makefile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/Makefile) has several commands to help with development tasks:
+
+```shell
 make build  # Build the package locally
 make test   # Run the tests
 make lint   # Run the linters
 make docs   # Build and serve the documentation locally
 ```
 
+> [!TIP]
+>
+> Create a shell alias for convenience:
+> ```shell
+> alias nixdev='nix develop -c $SHELL'
+> ```
+
+### Alternative Setup: Manual Installation
+
+If you prefer not to use Nix, you can set up the environment manually.
+
+The [Makefile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/Makefile) includes a command to install uv and sync dependencies:
+
+```shell
+make uv     # Install uv, sync dependencies, install pre-commit hooks
+```
+
 If you're using a system without `make`, you can run the equivalent commands directly:
 
 ```shell
-# Install uv and sync dependencies (Windows)
-powershell -c "irm https://astral.sh/uv/install.ps1 | more"
+# Install uv and sync dependencies (macOS/Linux)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync --all-groups
-pre-commit install
+uv run pre-commit install --install-hooks
+
+# Install uv and sync dependencies (Windows)
+# First, review the installation script:
+powershell -c "irm https://astral.sh/uv/install.ps1 | more"
+# Then, if you're happy with it, install:
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+uv sync --all-groups
+uv run pre-commit install --install-hooks
 
 # Build the package locally
 uv build
 
 # Run the tests
-pytest -v
+uv run pytest -v
 
 # Run the linters
-pre-commit run --all-files --hook-stage pre-commit
-pre-commit run --all-files --hook-stage pre-push
+uv run pre-commit run --all-files --hook-stage pre-commit
+uv run pre-commit run --all-files --hook-stage pre-push
 
 # Build and serve the documentation locally
-mkdocs build
-mkdocs serve
+uv run mkdocs build
+uv run mkdocs serve
 ```
 
 ## Publishing a new release
