@@ -18,6 +18,27 @@ jobs:
       url: https://pypi.org/p/dbt-datadict
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv build
-      - run: uv publish --token ${{ secrets.PYPI_TOKEN }}
+
+      - name: ❄️ Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: 📦 Cache Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 2G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-last-accessed: 604800
+          purge-primary-key: never
+
+      - name: 🔒 Verify flake.lock is up to date
+        run: nix flake lock --no-update-lock-file
+
+      - name: 📦 Build package
+        run: nix develop --no-update-lock-file --command uv build
+
+      - name: 🚀 Publish to PyPI
+        run: nix develop --no-update-lock-file --command uv publish --token ${{ secrets.PYPI_TOKEN }}
