@@ -39,5 +39,8 @@ jobs:
           key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
           restore-keys: uv-${{ runner.os }}-
 
+      - name: 🔨 Sync dependencies
+        run: nix develop --no-update-lock-file --command just ensure-uv
+
       - name: ✅ Run unit tests
         run: nix develop --no-update-lock-file --command just test
