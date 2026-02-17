@@ -37,8 +37,7 @@ jobs:
       - name: 🔒 Verify flake.lock is up to date
         run: nix flake lock --no-update-lock-file
 
-      - name: 📦 Build package
-        run: nix develop --no-update-lock-file --command uv build
-
-      - name: 🚀 Publish to PyPI
-        run: nix develop --no-update-lock-file --command uv publish --token ${{ secrets.PYPI_TOKEN }}
+      - name: 🚀 Build and publish to PyPI
+        run: nix develop --no-update-lock-file --command just publish
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}

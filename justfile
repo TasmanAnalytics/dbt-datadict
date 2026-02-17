@@ -1,3 +1,5 @@
+set dotenv-load
+
 [doc("Sync uv dependencies.")]
 ensure-uv:
 	uv sync --all-groups
@@ -13,20 +15,31 @@ ensure-uv-and-pre-commit: ensure-uv ensure-pre-commit
 publish-test: build
 	uv publish --index testpypi
 
+[doc("Publish the datadict Python package to PyPI.")]
+publish: build
+	uv publish --token "$PYPI_TOKEN"
+
 [doc("Build the datadict Python package")]
 build:
 	rm -rf dist/ && uv build
 
 [doc("Build and serve the Python docs for this repo.")]
 docs:
-	mkdocs build
-	mkdocs serve
+	uv sync --no-default-groups --group docs
+	uv run mkdocs build
+	uv run mkdocs serve
+
+[doc("Deploy documentation to GitHub Pages.")]
+docs-deploy:
+	uv sync --no-default-groups --group docs
+	uv run mkdocs gh-deploy --force
 
 [doc("Run tests for datadict.
 
 This will run tests with the `-v` flag.
 ")]
 test:
+	uv sync --no-default-groups --group test
 	uv run pytest -v
 
 [doc("Run linting for datadict.

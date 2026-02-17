@@ -80,17 +80,13 @@
               ]
             );
             shellHook = ''
-              # Sync uv dependencies
-              just ensure-uv
-
-              # Install pre-commit hooks (skip in CI)
               if [ -z "''${CI:-}" ]; then
-                just ensure-pre-commit
-              fi
+                just ensure-uv-and-pre-commit
 
-              # Activate the venv uv created
-              if [ -d .venv ]; then
-                source .venv/bin/activate
+                # Activate the venv uv created
+                if [ -d .venv ]; then
+                  source .venv/bin/activate
+                fi
               fi
             '';
 

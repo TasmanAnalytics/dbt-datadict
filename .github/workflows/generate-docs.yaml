@@ -47,8 +47,5 @@ jobs:
           key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
           restore-keys: uv-${{ runner.os }}-
 
-      - name: 🔨 Install dependencies
-        run: nix develop --no-update-lock-file --command uv sync --no-default-groups --group docs
-
       - name: 📝 Deploy docs
-        run: nix develop --no-update-lock-file --command uv run mkdocs gh-deploy --force
+        run: nix develop --no-update-lock-file --command just docs-deploy
