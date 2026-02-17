@@ -51,8 +51,6 @@
               with pkgs;
               [
                 # Command runners
-                # For `make`
-                gnumake
                 just
 
                 # Used by command runners
@@ -80,6 +78,7 @@
               ]
             );
             shellHook = ''
+              # Github Actions sets the "CI" environment variable to true.
               if [ -z "''${CI:-}" ]; then
                 just ensure-uv-and-pre-commit
 
