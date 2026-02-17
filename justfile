@@ -25,13 +25,13 @@ build:
 
 [doc("Build and serve the Python docs for this repo.")]
 docs:
-	uv sync --no-default-groups --group docs
+	uv sync --group docs
 	uv run mkdocs build
 	uv run mkdocs serve
 
 [doc("Deploy documentation to GitHub Pages.")]
 docs-deploy:
-	uv sync --no-default-groups --group docs
+	uv sync --group docs
 	uv run mkdocs gh-deploy --force
 
 [doc("Run tests for datadict.
@@ -39,7 +39,7 @@ docs-deploy:
 This will run tests with the `-v` flag.
 ")]
 test:
-	uv sync --no-default-groups --group test
+	uv sync --group test
 	uv run pytest -v
 
 [doc("Run linting for datadict.
