@@ -49,6 +49,53 @@ make docs   # Build and serve the documentation locally
 > alias nixdev='nix develop -c $SHELL'
 > ```
 
+### Enhanced Workflow: Using direnv (Optional)
+
+For an even smoother development experience, you can use [direnv](https://direnv.net/) to automatically load the Nix environment when you `cd` into the project directory.
+
+**Benefits:**
+- Automatically enters the Nix environment when you navigate to the project
+- Automatically reloads when `flake.nix`, `pyproject.toml`, or other watched files change
+- Keeps your preferred shell (no need for `-c $SHELL`)
+- Loads `.env` files if present
+
+**Setup:**
+
+1. **Install direnv and configure your shell hook** following the [direnv installation guide](https://direnv.net/docs/installation.html)
+
+2. **Allow direnv for this project:**
+   ```shell
+   cd /path/to/dbt-datadict
+   direnv allow
+   ```
+
+Once configured, when you `cd` into the project directory, direnv will automatically:
+- Load the Nix development environment
+- Set up the Python virtual environment
+- Install pre-commit hooks
+- Load any `.env` files
+
+The `.envrc` file in the project root configures direnv to:
+- Load `.env` files if they exist (`dotenv_if_exists`)
+- Watch `pyproject.toml` and `uv.lock` for changes
+- Use the Nix flake environment
+
+> [!NOTE]
+>
+> **Security:** When you modify `.envrc` or any watched files, direnv will prompt you to run `direnv allow` again for security purposes.
+>
+> **Reload timing:** direnv detects file changes and rebuilds the environment before the next shell prompt. After changing a watched file (like `flake.nix`), you need to run any command (even just pressing Enter) to trigger the reload.
+>
+> **Editor environments:** Programs launched from the shell (like `nvim`, `code`, etc.) inherit the environment at launch time. If the Nix environment changes, you'll need to restart the editor to pick up the new environment.
+
+> [!TIP]
+>
+> **IDE Integration:**
+>
+> - **VSCode/VSCodium/Nao**: Install the [direnv extension](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) to automatically load and reload the environment when watched files change.
+>
+> - **Other IDEs**: Most IDEs have built-in Python integration and will work with the `.venv` created by the Nix shell. When Python dependencies change, the venv is automatically rebuilt. System dependencies from the Nix flake (like `make`, `git`, etc.) are typically accessed through spawned subshells, which inherit the correct environment.
+
 ### Alternative Setup: Manual Installation
 
 If you prefer not to use Nix, you can set up the environment manually.
