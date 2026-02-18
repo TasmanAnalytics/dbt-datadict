@@ -28,18 +28,19 @@ nix develop -c $SHELL
 ```
 
 This will:
+
 - Automatically install all required dependencies (Python, uv, git, etc.)
 - Set up the Python virtual environment using uv
 - Install pre-commit hooks
 - Launch your preferred shell (zsh, bash, fish, etc.)
 
-The [Makefile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/Makefile) has several commands to help with development tasks:
+The [justfile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/justfile) has several commands to help with development tasks:
 
 ```shell
-make build  # Build the package locally
-make test   # Run the tests
-make lint   # Run the linters
-make docs   # Build and serve the documentation locally
+just build  # Build the package locally
+just test   # Run the tests
+just lint   # Run the linters
+just docs   # Build and serve the documentation locally
 ```
 
 > [!TIP]
@@ -54,6 +55,7 @@ make docs   # Build and serve the documentation locally
 For an even smoother development experience, you can use [direnv](https://direnv.net/) to automatically load the Nix environment when you `cd` into the project directory.
 
 **Benefits:**
+
 - Automatically enters the Nix environment when you navigate to the project
 - Automatically reloads when `flake.nix`, `pyproject.toml`, or other watched files change
 - Keeps your preferred shell (no need for `-c $SHELL`)
@@ -70,12 +72,14 @@ For an even smoother development experience, you can use [direnv](https://direnv
    ```
 
 Once configured, when you `cd` into the project directory, direnv will automatically:
+
 - Load the Nix development environment
 - Set up the Python virtual environment
 - Install pre-commit hooks
 - Load any `.env` files
 
 The `.envrc` file in the project root configures direnv to:
+
 - Load `.env` files if they exist (`dotenv_if_exists`)
 - Watch `pyproject.toml` and `uv.lock` for changes
 - Use the Nix flake environment
@@ -94,19 +98,19 @@ The `.envrc` file in the project root configures direnv to:
 >
 > - **VSCode/VSCodium/Nao**: Install the [direnv extension](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv) to automatically load and reload the environment when watched files change.
 >
-> - **Other IDEs**: Most IDEs have built-in Python integration and will work with the `.venv` created by the Nix shell. When Python dependencies change, the venv is automatically rebuilt. System dependencies from the Nix flake (like `make`, `git`, etc.) are typically accessed through spawned subshells, which inherit the correct environment.
+> - **Other IDEs**: Most IDEs have built-in Python integration and will work with the `.venv` created by the Nix shell. When Python dependencies change, the venv is automatically rebuilt. System dependencies from the Nix flake (like `just`, `git`, etc.) are typically accessed through spawned subshells, which inherit the correct environment.
 
 ### Alternative Setup: Manual Installation
 
 If you prefer not to use Nix, you can set up the environment manually.
 
-The [Makefile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/Makefile) includes a command to install uv and sync dependencies:
+The [justfile](https://github.com/TasmanAnalytics/dbt-datadict/blob/main/justfile) includes a command to install uv and sync dependencies:
 
 ```shell
-make uv     # Install uv, sync dependencies, install pre-commit hooks
+just ensure-uv-and-pre-commit  # Sync dependencies and install pre-commit hooks
 ```
 
-If you're using a system without `make`, you can run the equivalent commands directly:
+If you're using a system without `just`, you can run the equivalent commands directly:
 
 ```shell
 # Install uv and sync dependencies (macOS/Linux)
@@ -166,7 +170,7 @@ uv version --bump <bump>  # `patch`, `minor`, or `major`
 After incrementing the project version, publish the package with:
 
 ```shell
-make publish-test
+just publish-test
 
 # or
 uv publish --index testpypi

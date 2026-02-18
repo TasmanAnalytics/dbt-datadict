@@ -51,8 +51,6 @@
               with pkgs;
               [
                 # Command runners
-                # For `make`
-                gnumake
                 just
 
                 # Used by command runners
@@ -80,12 +78,14 @@
               ]
             );
             shellHook = ''
-              # Sync uv, create venv, and set up pre-commit hooks.
-              make uv
+              # Github Actions sets the "CI" environment variable to true.
+              if [ -z "''${CI:-}" ]; then
+                just ensure-uv-and-pre-commit
 
-              # Activate the venv uv created
-              if [ -d .venv ]; then
-                source .venv/bin/activate
+                # Activate the venv uv created
+                if [ -d .venv ]; then
+                  source .venv/bin/activate
+                fi
               fi
             '';
 
