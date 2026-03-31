@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10, <4.0"
 
 [[package]]
@@ -234,7 +234,7 @@ toml = [
 
 [[package]]
 name = "dbt-datadict"
-version = "0.4.0"
+version = "0.4.1"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -260,7 +260,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.3.0" },
-    { name = "ruamel-yaml", specifier = ">=0.17.35,<0.18" },
+    { name = "ruamel-yaml", specifier = ">=0.17.35,<0.19.1" },
 ]
 
 [package.metadata.requires-dev]
