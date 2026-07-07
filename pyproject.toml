@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbt-datadict"
-version = "0.4.0"
+version = "0.4.1"
 description = "Tool for managing consistent column descriptions across a dbt project."
 authors = [
     {name = "tom", email = "tom@tasman.ai"}
@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
     "ruamel.yaml>=0.17.35,<0.18",
     "click>=8.3.0",
+    "ijson>=3.3.0,<4.0",
 ]
 scripts = {datadict = "dbt_datadict.__main__:cli"}
 

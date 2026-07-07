@@ -76,17 +76,12 @@ def test__bash_output_can_be_parsed(in_: str, expected: str):
     assert result == expected
 
 
-@pytest.mark.skip(
-    "This is what I'd expect the logging to do, but it actually raises _another_ error (see test below)"
-)
 def test__parse_bash_outputs__exception_raised__error_logged(
     caplog: pytest.LogCaptureFixture,
 ):
     """
     When parsing bash output raises an exception, the exception is logged as
     an error.
-
-    Future refactoring should result in this test being binned.
     """
 
     error_msg = "There was an issue parsing the codegen outputs:"
@@ -97,26 +92,11 @@ def test__parse_bash_outputs__exception_raised__error_logged(
     assert error_msg in caplog.text
 
 
-def test__parse_bash_outputs__exception_raised__different_exception_raised(
-    capsys: pytest.CaptureFixture,
-):
-    """
-    This is just to "document" the existing behaviour, which I assume is not
-    intentional.
-
-    Future refactoring should result in this test being binned.
-    """
-
-    with pytest.raises(
-        TypeError,
-        match=r'can only concatenate str \(not "AttributeError"\) to str',
-    ):
-        dbt_io.parse_bash_outputs(None)  # type: ignore
-
-
 class MockCompletedProcess:
-    def __init__(self, returns: Any):
+    def __init__(self, returns: Any, returncode: int = 0):
         self.stdout = types.SimpleNamespace(decode=lambda _: returns)
+        self.stderr = types.SimpleNamespace(decode=lambda _: returns)
+        self.returncode = returncode
 
 
 def test__validate_dbt__happy_path__true_returned(
@@ -165,33 +145,30 @@ def test__validate_dbt__dbt_debug_fails__false_returned(
     assert error_msg in caplog.text
 
 
-def test__validate_dbt__dbt_deps_fails__false_returned(
+def test__validate_dbt__codegen_missing__warning_logged_true_returned(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
     """
-    If the ``dbt deps`` command is unsuccessful, the validation returns
-    ``False`` and logs an error.
+    If ``dbt-labs/codegen`` is not found, validation returns True with a warning
+    (codegen is now optional; manifest-based extraction is used if available).
     """
 
     def mock_run(args, **kwargs):  # noqa: unused variables
         if args == ["dbt", "debug"]:
             return MockCompletedProcess("All checks passed!")
-        return MockCompletedProcess("deps failed!")
+        return MockCompletedProcess("deps completed!")
 
     monkeypatch.setattr(subprocess, "run", mock_run)
 
-    error_msg = "dbt-labs/codegen is required to perform this operation"
-    with caplog.at_level(logging.ERROR):
+    warning_msg = "dbt-labs/codegen not found - will use manifest for column metadata if available"
+    with caplog.at_level(logging.WARNING):
         result = dbt_io.validate_dbt()
 
-    assert result == False
-    assert error_msg in caplog.text
+    assert result == True
+    assert warning_msg in caplog.text
 
 
-@pytest.mark.skip(
-    "This is what I'd expect the logging to do, but it actually raises _another_ error (see test below)"
-)
 def test__validate_dbt__exception_raised__false_returned(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
@@ -215,28 +192,6 @@ def test__validate_dbt__exception_raised__false_returned(
     assert result == False
     assert error_msg in caplog.text
 
-
-def test__validate_dbt__exception_raised__different_exception_raised(
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-):
-    """
-    This is just to "document" the existing behaviour, which I assume is not
-    intentional.
-
-    Future refactoring should result in this test being binned.
-    """
-
-    def mock_run(args, **kwargs):  # noqa: unused variables
-        raise Exception
-
-    monkeypatch.setattr(subprocess, "run", mock_run)
-
-    with pytest.raises(
-        TypeError,
-        match=r'can only concatenate str \(not "Exception"\) to str',
-    ):
-        dbt_io.validate_dbt()
 
 
 def test__get_model_yaml__happy_path__model_yaml_returned_as_dict(
@@ -333,3 +288,382 @@ def test__get_model_yaml__exception_raised__no_data_returned(
 
     assert result is None
     assert error_msg in caplog.text
+
+
+# Tests for manifest-based extraction
+
+
+def test__get_manifest_path__found__returns_absolute_path(
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    When manifest exists in target/ directory, get_manifest_path returns absolute path.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    dbt_project_file = tmp_path / "dbt_project.yml"
+    dbt_project_file.write_text("name: test_project")
+
+    manifest_dir = tmp_path / "target"
+    manifest_dir.mkdir()
+    manifest_file = manifest_dir / "manifest.json"
+    manifest_file.write_text("{}")
+
+    result = dbt_io.get_manifest_path()
+
+    assert result is not None
+    assert result.endswith("manifest.json")
+
+
+def test__get_manifest_path__not_in_dbt_project__returns_none(
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When not in a dbt project directory, get_manifest_path returns None and logs error.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.get_manifest_path()
+
+    assert result is None
+    assert "Not in a dbt project directory" in caplog.text
+
+
+def test__generate_manifest__success__returns_true(
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When dbt parse succeeds, generate_manifest returns True.
+    """
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        if args[0:2] == ["dbt", "parse"]:
+            manifest_file = tmp_path / "target" / "manifest.json"
+            manifest_file.parent.mkdir(parents=True, exist_ok=True)
+            manifest_file.write_text("{}")
+            return MockCompletedProcess("", returncode=0)
+        return MockCompletedProcess("", returncode=0)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+    monkeypatch.chdir(tmp_path)
+
+    info_msg = "Manifest generated successfully"
+    with caplog.at_level(logging.INFO):
+        result = dbt_io.generate_manifest()
+
+    assert result is True
+    assert info_msg in caplog.text
+
+
+def test__generate_manifest__failure__returns_false(
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When dbt parse fails, generate_manifest returns False and logs error.
+    """
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        return types.SimpleNamespace(
+            returncode=1, stderr=b"dbt parse failed"
+        )
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "dbt parse failed"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.generate_manifest()
+
+    assert result is False
+    assert error_msg in caplog.text
+
+
+def test__extract_columns_from_manifest_streaming__success__returns_models(
+    tmp_path: Any,
+):
+    """
+    extract_columns_from_manifest_streaming successfully extracts model columns.
+    """
+    manifest_content = """{
+    "metadata": {
+        "generated_at": "2099-07-07T08:52:26.321188Z"
+    },
+    "nodes": {
+        "model.project.test_model": {
+            "name": "test_model",
+            "resource_type": "model",
+            "columns": {
+                "col1": {
+                    "name": "col1",
+                    "data_type": "varchar",
+                    "description": "Column 1"
+                },
+                "col2": {
+                    "name": "col2",
+                    "data_type": "integer",
+                    "description": "Column 2"
+                }
+            }
+        }
+    }
+}"""
+    manifest_file = tmp_path / "manifest.json"
+    manifest_file.write_text(manifest_content)
+
+    result = dbt_io.extract_columns_from_manifest_streaming(
+        str(manifest_file), ["test_model"]
+    )
+
+    assert result is not None
+    assert result["version"] == 2
+    assert len(result["models"]) == 1
+    assert result["models"][0]["name"] == "test_model"
+    assert len(result["models"][0]["columns"]) == 2
+
+    col_names = [c["name"] for c in result["models"][0]["columns"]]
+    assert col_names == ["col1", "col2"]
+
+
+def test__extract_columns_from_manifest_streaming__model_not_found__returns_none(
+    tmp_path: Any,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When model not in manifest, returns None and logs warning.
+    """
+    manifest_content = '{"metadata": {}, "nodes": {}}'
+    manifest_file = tmp_path / "manifest.json"
+    manifest_file.write_text(manifest_content)
+
+    with caplog.at_level(logging.WARNING):
+        result = dbt_io.extract_columns_from_manifest_streaming(
+            str(manifest_file), ["missing_model"]
+        )
+
+    assert result is None
+    assert "No models found in manifest" in caplog.text
+
+
+def test__get_model_yaml__from_manifest__success(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+):
+    """
+    get_model_yaml successfully extracts from manifest when available.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    dbt_project_file = tmp_path / "dbt_project.yml"
+    dbt_project_file.write_text("name: test_project")
+
+    manifest_content = """{
+    "metadata": {
+        "generated_at": "2099-07-07T08:52:26.321188Z"
+    },
+    "nodes": {
+        "model.project.test_model": {
+            "name": "test_model",
+            "resource_type": "model",
+            "columns": {
+                "col1": {
+                    "name": "col1",
+                    "data_type": "varchar",
+                    "description": "Test column"
+                }
+            }
+        }
+    }
+}"""
+    manifest_dir = tmp_path / "target"
+    manifest_dir.mkdir()
+    manifest_file = manifest_dir / "manifest.json"
+    manifest_file.write_text(manifest_content)
+
+    # Mock subprocess.run for dbt parse call (generates manifest)
+    def mock_run(args, **kwargs):
+        return MockCompletedProcess("", returncode=0)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    result = dbt_io.get_model_yaml(["test_model"])
+
+    assert result is not None
+    assert result["version"] == 2
+    assert len(result["models"]) == 1
+    assert result["models"][0]["name"] == "test_model"
+
+
+def test__get_model_yaml__fallback_to_database__when_manifest_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When manifest is missing, get_model_yaml falls back to database approach.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    dbt_project_file = tmp_path / "dbt_project.yml"
+    dbt_project_file.write_text("name: test_project")
+
+    mock_generated_model_yaml = textwrap.dedent(
+        """\
+        version: 2
+        models:
+          - name: test_model
+            description: Test model
+            columns:
+              - name: col1
+                data_type: varchar
+                description: Test column
+        """
+    )
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        return MockCompletedProcess(mock_generated_model_yaml)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    fallback_msg = "Falling back to database query"
+    with caplog.at_level(logging.INFO):
+        result = dbt_io.get_model_yaml(["test_model"])
+
+    assert result is not None
+    assert result["models"][0]["name"] == "test_model"
+    assert fallback_msg in caplog.text
+
+
+def test__validate_dbt__timeout__false_returned(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When dbt debug times out, validation returns False and logs error.
+    """
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        raise subprocess.TimeoutExpired(cmd=args, timeout=300)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "timed out"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.validate_dbt()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
+def test__generate_manifest__timeout__false_returned(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When dbt parse times out, generate_manifest returns False.
+    """
+
+    def mock_run(args, **kwargs):  # noqa: unused variables
+        raise subprocess.TimeoutExpired(cmd=args, timeout=300)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    error_msg = "timed out"
+    with caplog.at_level(logging.ERROR):
+        result = dbt_io.generate_manifest()
+
+    assert result == False
+    assert error_msg in caplog.text
+
+
+def test__get_manifest_path__yaml_extension__path_returned(
+    tmp_path: Any,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    When dbt_project.yaml exists (not .yml), get_manifest_path still works.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    # Note: using .yaml extension instead of .yml
+    dbt_project_file = tmp_path / "dbt_project.yaml"
+    dbt_project_file.write_text("name: test_project")
+
+    manifest_dir = tmp_path / "target"
+    manifest_dir.mkdir()
+    manifest_file = manifest_dir / "manifest.json"
+    manifest_file.write_text("{}")
+
+    result = dbt_io.get_manifest_path()
+
+    assert result is not None
+    assert result.endswith("manifest.json")
+
+
+def test__get_model_yaml__partial_manifest_db_fails__warning_logged_partial_returned(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    When some models found in manifest but database fallback fails,
+    returns partial results with warning logged.
+
+    This is the CRITICAL data loss scenario that was previously silent.
+    """
+    monkeypatch.chdir(tmp_path)
+
+    dbt_project_file = tmp_path / "dbt_project.yml"
+    dbt_project_file.write_text("name: test_project")
+
+    # Manifest has only model_a, missing model_b
+    manifest_content = """{
+    "metadata": {
+        "generated_at": "2099-07-07T08:52:26.321188Z"
+    },
+    "nodes": {
+        "model.project.model_a": {
+            "name": "model_a",
+            "resource_type": "model",
+            "columns": {
+                "col1": {
+                    "name": "col1",
+                    "data_type": "varchar",
+                    "description": "Column 1"
+                }
+            }
+        }
+    }
+}"""
+    manifest_dir = tmp_path / "target"
+    manifest_dir.mkdir()
+    manifest_file = manifest_dir / "manifest.json"
+    manifest_file.write_text(manifest_content)
+
+    # Mock database query to return None (failure)
+    def mock_run(args, **kwargs):
+        return MockCompletedProcess("Compilation Error")
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
+
+    # Request both models
+    warning_msg = "Failed to retrieve models"
+    incomplete_msg = "Returning incomplete results"
+    with caplog.at_level(logging.WARNING):
+        result = dbt_io.get_model_yaml(["model_a", "model_b"])
+
+    # Should return partial results (only model_a)
+    assert result is not None
+    assert len(result["models"]) == 1
+    assert result["models"][0]["name"] == "model_a"
+
+    # Should log clear warning about missing model_b
+    assert warning_msg in caplog.text
+    assert incomplete_msg in caplog.text
+    assert "model_b" in caplog.text
