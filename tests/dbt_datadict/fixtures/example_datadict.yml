@@ -1,0 +1,1381 @@
+dictionary:
+
+- name: activity_category
+  description: High-level activity classification for the tour (e.g., Walking, Cycling,
+    Exploring). Derived from the tour activity type in dmn_tours. Defaults to Other
+    when no activity is mapped.
+  models:
+  - dmn_bookings_versioned
+
+- name: actual_deposit_amount
+  description: Deposit amount received in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: actual_deposit_amount_gbp
+  description: Deposit amount received converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: adult_count
+  description: Number of adult passengers on the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: app_info_firebase_app_id
+  description: The Firebase app ID associated with the Macs Adventure mobile app.
+    Primarily null for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: app_info_id
+  description: The package name (Android) or bundle ID (iOS) of the Macs Adventure
+    app. Null for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: app_info_install_source
+  description: The source from which the Macs Adventure app was installed (e.g., manual_install,
+    com.android.vending). Null for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: app_info_install_store
+  description: The app store from which the Macs Adventure app was installed (e.g.,
+    App Store, Google Play). Null for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: app_info_version
+  description: The version of the Macs Adventure app. Null for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: balance_due_date
+  description: Date when balance payment is due
+  models:
+  - dmn_bookings_versioned
+
+- name: batch_event_index
+  description: The index position of the event within its GA4 batch (0-based). Used
+    with batch_ordering_id for precise event sequencing and deduplication.
+  models:
+  - stg_ga4_events
+
+- name: batch_ordering_id
+  description: The monotonically increasing ID assigned to each GA4 batch. Combined
+    with batch_event_index to establish deterministic event ordering.
+  models:
+  - stg_ga4_events
+
+- name: batch_page_id
+  description: The page ID within the GA4 batch. Used internally by GA4 for batch
+    processing - rarely needed for analysis.
+  models:
+  - stg_ga4_events
+
+- name: booked_date
+  description: Date booking was confirmed
+  models:
+  - dmn_bookings_versioned
+
+- name: booked_financial_period
+  description: Financial period of booking (e.g., FY2026-P01)
+  models:
+  - dmn_bookings_versioned
+
+- name: booked_financial_year
+  description: Financial year of booking (December = Month 1 of next FY)
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_guid
+  description: Globally unique identifier for the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_id
+  description: Unique booking identifier; foreign key to stg_bookings
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_name
+  description: Lead customer name associated with the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_ref
+  description: Booking reference (e.g., MA-12345). Human-readable business identifier
+    for bookings.
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_requested_date
+  description: The date the booking was requested by the customer.
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_status
+  description: Human-readable booking status name (e.g., Confirmed, Provisional, Cancelled)
+  models:
+  - dmn_bookings_versioned
+
+- name: booking_status_code
+  description: Booking status code (maps to booking_status seed)
+  models:
+  - dmn_bookings_versioned
+
+- name: brand
+  description: Brand name under which the booking was made (e.g., Macs Adventure,
+    Abenteuer Wege)
+  models:
+  - dmn_bookings_versioned
+
+- name: business_channel
+  description: Business channel display name (e.g., Macs Adventure UK, Abenteuer Wege).
+  models:
+  - dmn_bookings_versioned
+
+- name: business_channel_id
+  description: Primary key from source system
+  models:
+  - dmn_bookings_versioned
+
+- name: business_unit
+  description: Business unit name (Abenteuer Wege, Macs UK, Macs US).
+  models:
+  - dmn_bookings_versioned
+
+- name: cancellation_charges
+  description: Total charges applied for the booking cancellation in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: cancellation_comments
+  description: Free-text comments or notes about the cancellation
+  models:
+  - dmn_bookings_versioned
+
+- name: cancellation_reason
+  description: Human-readable name of the cancellation reason
+  models:
+  - dmn_bookings_versioned
+
+- name: cancellation_reason_code
+  description: Short code for the cancellation reason (e.g., AFRTY, AVLTY)
+  models:
+  - dmn_bookings_versioned
+
+- name: cancellation_reason_description
+  description: Extended description of the cancellation reason
+  models:
+  - dmn_bookings_versioned
+
+- name: cancelled_date
+  description: Date when the booking was cancelled
+  models:
+  - dmn_bookings_versioned
+
+- name: cancelled_financial_year
+  description: Financial year when the booking was cancelled (December = Month 1 of
+    next FY)
+  models:
+  - dmn_bookings_versioned
+
+- name: child_count
+  description: Number of child passengers on the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: comfort_id
+  description: Accommodation comfort level
+  models:
+  - dmn_bookings_versioned
+
+- name: confirmed_date
+  description: Date booking was confirmed (deposit paid)
+  models:
+  - dmn_bookings_versioned
+
+- name: confirmed_financial_year
+  description: Financial year of confirmation (December = Month 1 of next FY)
+  models:
+  - dmn_bookings_versioned
+
+- name: contracting_business_unit
+  description: Business unit responsible for the supplier contract and operations
+  models:
+  - dmn_bookings_versioned
+
+- name: created_by_user_id
+  description: User who created the record
+  models:
+  - dmn_bookings_versioned
+
+- name: cross_channel_campaign_id
+  description: Campaign ID as drawn from the cross-channel object on the GA4 event.
+  models:
+  - stg_ga4_events
+
+- name: cross_channel_campaign_name
+  description: Campaign name as drawn from the cross-channel object on the GA4 event.
+    Often blank...
+  models:
+  - stg_ga4_events
+
+- name: cross_channel_medium
+  description: Channel medium as drawn from the cross-channel object on the GA4 event.
+    Often blank...
+  models:
+  - stg_ga4_events
+
+- name: cross_channel_primary_channel_group
+  description: Campaign primary channel group as drawn from the cross-channel object
+    on the GA4 event. Typically (cross channel)
+  models:
+  - stg_ga4_events
+
+- name: cross_channel_source
+  description: Channel source as drawn from the cross-channel object on the GA4 event.
+    Often blank...
+  models:
+  - stg_ga4_events
+
+- name: currency_code
+  description: ISO 3-letter currency code (e.g., GBP, USD, EUR)
+  models:
+  - dmn_bookings_versioned
+
+- name: currency_id
+  description: ' Foreign key to currency reference'
+  models:
+  - dmn_bookings_versioned
+
+- name: customer_country
+  description: Customer's country name from their default billing address
+  models:
+  - dmn_bookings_versioned
+
+- name: customer_id
+  description: Primary key from source system, foreign key to stg_customers
+  models:
+  - dmn_bookings_versioned
+
+- name: customer_ref
+  description: Customer reference (e.g., CUST434822). Human-readable business identifier
+    for customers.
+  models:
+  - dmn_bookings_versioned
+
+- name: customer_type
+  description: New/Repeat customer classification based on prior non-cancelled bookings.
+    New = first ever booking (prior_booking_count = 0); Repeat = any subsequent booking.
+    Null when customer_id is null.
+  models:
+  - dmn_bookings_versioned
+
+- name: departure_date
+  description: Scheduled departure date for the tour
+  models:
+  - dmn_bookings_versioned
+
+- name: departure_financial_period
+  description: The Macs financial period (1–12) derived from the departure date. The
+    financial year starts in December, so December = period 1, January = period 2,
+    through to November = period 12. Computed via mod(month(departure_date), 12) +
+    1.
+  models:
+  - dmn_bookings_versioned
+
+- name: departure_financial_year
+  description: The Macs financial year the departure falls in. Because the financial
+    year starts in December, departures in December are assigned to the following
+    calendar year (e.g. a December 2024 departure belongs to FY2025). All other months
+    use the calendar year as-is.
+  models:
+  - dmn_bookings_versioned
+
+- name: device_advertising_id
+  description: The device's advertising identifier (IDFA for iOS, GAID for Android).
+    Often null due to user privacy settings and ATT framework. Null for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: device_browser
+  description: The browser used to access the website (e.g., Chrome, Safari, Firefox).
+    For web traffic, prefer device_web_info_browser which is more reliably populated.
+  models:
+  - stg_ga4_events
+
+- name: device_browser_version
+  description: The version of the browser. For web traffic, prefer device_web_info_browser_version
+    which is more reliably populated.
+  models:
+  - stg_ga4_events
+
+- name: device_category
+  description: The device type used to browse the Macs Adventure website (desktop,
+    mobile, tablet). Important for understanding how customers research and book trips
+    across devices.
+  models:
+  - stg_ga4_events
+
+- name: device_is_limited_ad_tracking
+  description: Boolean indicating whether the user has enabled limited ad tracking
+    (LAT) on their device. When true, device_advertising_id is unavailable.
+  models:
+  - stg_ga4_events
+
+- name: device_language
+  description: The language setting of the user's device. Useful for identifying market
+    alignment (e.g., German-language users for Abenteuer Wege).
+  models:
+  - stg_ga4_events
+
+- name: device_mobile_brand_name
+  description: The brand of the mobile device (e.g., Apple, Samsung, Google). Null
+    for desktop/web traffic.
+  models:
+  - stg_ga4_events
+
+- name: device_mobile_marketing_name
+  description: The consumer-facing marketing name of the mobile device (e.g., iPhone
+    14 Pro, Galaxy S23). Null for desktop/web traffic.
+  models:
+  - stg_ga4_events
+
+- name: device_mobile_model_name
+  description: The internal model identifier of the mobile device. Null for desktop/web
+    traffic.
+  models:
+  - stg_ga4_events
+
+- name: device_mobile_os_hardware_model
+  description: The hardware model identifier reported by the device's operating system
+    (e.g., iPhone13,2). More granular than device_mobile_model_name.
+  models:
+  - stg_ga4_events
+
+- name: device_operating_system
+  description: The operating system of the device (e.g., iOS, Android, Windows, macOS,
+    Linux).
+  models:
+  - stg_ga4_events
+
+- name: device_operating_system_version
+  description: The version of the device's operating system (e.g., '14.5' for iOS,
+    '10' for Windows).
+  models:
+  - stg_ga4_events
+
+- name: device_time_zone_offset_seconds
+  description: The user's time zone offset from UTC in seconds (e.g., 3600 for UTC+1,
+    -18000 for UTC-5). Useful for localising event times to user's perspective.
+  models:
+  - stg_ga4_events
+
+- name: device_vendor_id
+  description: The iOS Identifier for Vendor (IDFV). Null for Android and web traffic.
+  models:
+  - stg_ga4_events
+
+- name: device_web_info_browser
+  description: The browser name from web-specific device information. Preferred over
+    device_browser for web traffic as it is more reliably populated.
+  models:
+  - stg_ga4_events
+
+- name: device_web_info_browser_version
+  description: The browser version from web-specific device information. Preferred
+    over device_browser_version for web traffic.
+  models:
+  - stg_ga4_events
+
+- name: device_web_info_hostname
+  description: The hostname of the Macs Adventure website (e.g., macsadventure.com,
+    abenteuer-wege.de) where the event occurred.
+  models:
+  - stg_ga4_events
+
+- name: distance_in_kms
+  description: Total tour distance in kilometers
+  models:
+  - dmn_bookings_versioned
+
+- name: distance_in_miles
+  description: Total tour distance in miles
+  models:
+  - dmn_bookings_versioned
+
+- name: due_amount
+  description: Outstanding balance amount due from customer in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: due_amount_eur
+  description: Outstanding balance amount due converted to EUR
+  models:
+  - dmn_bookings_versioned
+
+- name: due_amount_gbp
+  description: Outstanding balance amount due converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: due_amount_usd
+  description: Outstanding balance amount due converted to USD
+  models:
+  - dmn_bookings_versioned
+
+- name: ecommerce_purchase_revenue
+  description: The trip booking revenue in the transaction's local currency (GBP,
+    USD, EUR, AUD).
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_purchase_revenue_in_usd
+  description: The trip booking revenue converted to USD for cross-market comparison
+    (UK, US, Germany, Australia).
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_refund_value
+  description: The refund amount for cancelled trip bookings.
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_refund_value_in_usd
+  description: The refund amount converted to USD for cross-market reporting.
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_shipping_value
+  description: Shipping/delivery charges associated with the booking (e.g., luggage
+    transfer fees, document delivery).
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_shipping_value_in_usd
+  description: Shipping/delivery charges converted to USD.
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_tax_value
+  description: Tax amount associated with the trip booking.
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_tax_value_in_usd
+  description: Tax amount converted to USD.
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_total_item_quantity
+  description: The total number of items in the transaction (e.g., number of travellers,
+    add-on services).
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_transaction_id
+  description: The unique transaction identifier for the purchase. Maps to booking_ref
+    for linking GA4 frontend events to vSourz backend booking data.
+  models:
+  - stg_ga4_events
+
+- name: ecommerce_unique_items
+  description: The number of distinct item types in the transaction (e.g., trip +
+    extras like travel insurance).
+  models:
+  - stg_ga4_events
+
+- name: end_point
+  description: Tour ending location or destination
+  models:
+  - dmn_bookings_versioned
+
+- name: engagement_time_msec
+  description: The time in milliseconds that the page or app was in the foreground
+    and actively engaged. Accumulated across the session for total engagement time
+    calculations.
+  models:
+  - stg_ga4_events
+
+- name: enquiry_date
+  description: Date original enquiry was received
+  models:
+  - dmn_bookings_versioned
+
+- name: enquiry_id
+  description: Primary key for enquiries, foreign key to stg_enquiries from bookings.
+  models:
+  - dmn_bookings_versioned
+  - stg_ga4_events
+
+- name: enquiry_ref
+  description: Enquiry reference (e.g., ENQ00373342). Human-readable business identifier
+    for enquiries.
+  models:
+  - dmn_bookings_versioned
+
+- name: entrances
+  description: Flag indicating whether this event was a session entrance (value of
+    1) or not (null). Used to identify landing page events and calculate entrance
+    rates.
+  models:
+  - stg_ga4_events
+
+- name: event_bundle_sequence_id
+  description: The sequential ID of the event bundle for ordering events within the
+    same upload batch.
+  models:
+  - stg_ga4_events
+
+- name: event_date
+  description: The calendar date when the event occurred. Used for daily reporting
+    and trend analysis.
+  models:
+  - stg_ga4_events
+
+- name: event_dimensions_hostname
+  description: The website hostname where the event was captured. Duplicates device_web_info_hostname
+    - prefer device_web_info_hostname for consistency.
+  models:
+  - stg_ga4_events
+
+- name: event_id
+  description: Surrogate key for the event, generated by hashing event_timestamp,
+    user_pseudo_id, event_name, and event_bundle_sequence_id. Primary key for event-level
+    analysis.
+  models:
+  - stg_ga4_events
+
+- name: event_name
+  description: The GA4 event name describing the user action (e.g., 'page_view', 'tour_form_submit',
+    'purchase', 'begin_checkout'). Key events for Macs include enquiry submissions
+    and booking completions.
+  models:
+  - stg_ga4_events
+
+- name: event_params
+  description: Semi-structured VARIANT column containing event-specific parameters
+    as key-value pairs. Access values using event_params:key_name::datatype syntax
+    in Snowflake.
+  models:
+  - stg_ga4_events
+
+- name: event_previous_timestamp
+  description: The timestamp of the user's previous event in microseconds since epoch.
+    Null for the first event in a user's history. Useful for calculating inter-event
+    timing.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_campaign
+  description: The UTM campaign name (utm_campaign) captured from the URL at event
+    time. Raw value from collected_traffic_source before any attribution logic is
+    applied.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_campaign_id
+  description: The UTM campaign ID (utm_id) captured from the URL at event time. Raw
+    value from collected_traffic_source before any attribution logic is applied.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_content
+  description: The UTM content parameter (utm_content) captured from the URL at event
+    time.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_dclid
+  description: Display Click ID captured at event time from the URL. Automatically
+    appended when users click Google Display Network ads.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_gclid
+  description: Google Click ID captured at event time from the URL. Automatically
+    appended when users click Google Ads, enabling conversion tracking and attribution.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_medium
+  description: The UTM medium parameter (utm_medium) captured from the URL at event
+    time (e.g., 'cpc', 'organic', 'email', 'referral'). Raw value before attribution
+    logic.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_source
+  description: The UTM source parameter (utm_source) captured from the URL at event
+    time (e.g., 'google', 'facebook', 'newsletter'). Raw value before attribution
+    logic.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_srsltid
+  description: Search Result Source Listing ID captured at event time. Appended by
+    Google when users click on product listings or organic results from Google Merchant
+    Center.
+  models:
+  - stg_ga4_events
+
+- name: event_scope_term
+  description: The UTM term parameter (utm_term) captured from the URL at event time.
+    Typically used for paid search keyword tracking.
+  models:
+  - stg_ga4_events
+
+- name: event_server_timestamp_offset
+  description: The offset in microseconds between the client event timestamp and server
+    receipt time. Large positive values may indicate offline browsing; negative values
+    suggest clock drift.
+  models:
+  - stg_ga4_events
+
+- name: event_timestamp
+  description: The timestamp when the event occurred in microseconds since Unix epoch
+    (UTC). Primary timestamp for event ordering. Convert to timestamp using TO_TIMESTAMP(event_timestamp,
+    6).
+  models:
+  - stg_ga4_events
+
+- name: first_touch_campaign
+  description: The campaign from the user's very first visit to Macs Adventure (user
+    acquisition). NOT for marketing attribution - use session_campaign instead. Useful
+    for understanding which campaigns acquire new users.
+  models:
+  - stg_ga4_events
+
+- name: first_touch_medium
+  description: The medium from the user's very first visit (user acquisition). NOT
+    for marketing attribution - use session_medium instead.
+  models:
+  - stg_ga4_events
+
+- name: first_touch_source
+  description: The source from the user's very first visit (user acquisition). NOT
+    for marketing attribution - use session_source instead.
+  models:
+  - stg_ga4_events
+
+- name: fivetran_synced_at
+  description: Timestamp when the record was last synced by Fivetran.
+  models:
+  - dmn_bookings_versioned
+
+- name: fx_rate_gbp_to_eur
+  description: Exchange rate from GBP to EUR at time of booking
+  models:
+  - dmn_bookings_versioned
+
+- name: fx_rate_gbp_to_usd
+  description: Exchange rate from GBP to USD at time of booking
+  models:
+  - dmn_bookings_versioned
+
+- name: fx_rate_to_gbp
+  description: Exchange rate from booking currency to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: fx_year
+  description: Financial year used for exchange rate lookup
+  models:
+  - dmn_bookings_versioned
+
+- name: ga_session_id
+  description: The GA4 session identifier (integer). Not globally unique - must be
+    combined with user_pseudo_id to create a unique session key. Extracted from event_params.ga_session_id.
+  models:
+  - stg_ga4_events
+
+- name: ga_session_number
+  description: The sequential session count for this user (1 = first session, 2 =
+    second session, etc.). Higher numbers indicate returning visitors researching
+    trips across multiple sessions.
+  models:
+  - stg_ga4_events
+
+- name: geo_city
+  description: The city from which the user accessed the Macs Adventure website, based
+    on IP geolocation.
+  models:
+  - stg_ga4_events
+
+- name: geo_continent
+  description: The continent from which the user accessed the website. Useful for
+    high-level geographic segmentation.
+  models:
+  - stg_ga4_events
+
+- name: geo_country
+  description: The country from which the user accessed the website. Critical for
+    market segmentation (UK, US, Germany, Australia, etc.) and aligning users to business
+    units.
+  models:
+  - stg_ga4_events
+
+- name: geo_metro
+  description: The metropolitan area (DMA in US) from which the user accessed the
+    website.
+  models:
+  - stg_ga4_events
+
+- name: geo_region
+  description: The region/state/province from which the user accessed the website.
+  models:
+  - stg_ga4_events
+
+- name: geo_sub_continent
+  description: The sub-continental region from which the user accessed the website
+    (e.g., Northern Europe, Western Europe).
+  models:
+  - stg_ga4_events
+
+- name: google_ads_account_name
+  description: The Google Ads account name from session last-click attribution. Identifies
+    which Macs Adventure Google Ads account drove the session.
+  models:
+  - stg_ga4_events
+
+- name: google_ads_ad_group_id
+  description: The Google Ads ad group identifier from session last-click attribution.
+    Used for granular ad group performance analysis.
+  models:
+  - stg_ga4_events
+
+- name: google_ads_ad_group_name
+  description: The Google Ads ad group name from session last-click attribution. Provides
+    human-readable context for ad group performance reporting.
+  models:
+  - stg_ga4_events
+
+- name: google_ads_campaign_id
+  description: The Google Ads campaign identifier from session last-click attribution.
+    Used for joining to Google Ads reporting data.
+  models:
+  - stg_ga4_events
+
+- name: google_ads_campaign_name
+  description: The Google Ads campaign name from session last-click attribution. Provides
+    human-readable campaign context for attribution analysis.
+  models:
+  - stg_ga4_events
+
+- name: google_ads_customer_id
+  description: The Google Ads customer (account) identifier from session last-click
+    attribution. The top-level account ID in the Google Ads hierarchy.
+  models:
+  - stg_ga4_events
+
+- name: grade_id
+  description: 'Foreign key to stg_tour_grades - difficulty level. Primary key for
+    describing grade/difficulty from routetours '
+  models:
+  - dmn_bookings_versioned
+
+- name: gross_margin_amount
+  description: Gross margin in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: gross_margin_amount_eur
+  description: Gross margin amount converted to EUR via GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: gross_margin_amount_gbp
+  description: Gross margin amount converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: gross_margin_amount_usd
+  description: Gross margin amount converted to USD via GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: ground_handler_cost
+  description: Cost payable to ground handler/supplier
+  models:
+  - dmn_bookings_versioned
+
+- name: ground_handler_cost_gbp
+  description: Ground handler/supplier cost converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: has_enquiry
+  description: Flag indicating whether this booking originated from an enquiry (true)
+  models:
+  - dmn_bookings_versioned
+
+- name: high_booking_status
+  description: 'Grouped booking status that collapses granular vSourz statuses into
+    broad categories. Maps as follows: Provisional-New / Provisional / Provisional-Amendment
+    → Provisional; Confirmed / Confirmed-Completed / Confirmed-Amendment → Confirmed;
+    Pending → Pending; Cancelled → Cancelled; Postponed → Postponed; Abandoned → Abandoned.
+    Test bookings (source_of_enquiry_code = TST) are overridden to Abandoned. Defaults
+    to UNKNOWN if the status code is unrecognised.'
+  models:
+  - dmn_bookings_versioned
+
+- name: high_cancellation_status
+  description: High-level cancellation status grouping for reporting
+  models:
+  - dmn_bookings_versioned
+
+- name: ignore_referrer
+  description: Boolean flag indicating the page referrer is an internal Macs Adventure
+    URL and should not be treated as a referral source. Used to filter out self-referrals
+    in attribution.
+  models:
+  - stg_ga4_events
+
+- name: infant_count
+  description: Number of infant passengers on the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: ingestion_complete
+  description: Boolean flag indicating whether GA4 data ingestion for this date is
+    complete. False indicates partial data that may be updated in subsequent runs.
+  models:
+  - stg_ga4_events
+
+- name: is_active
+  description: Has many different meanings depending on the record. For example, Whether
+    booking record is active, Whether the quotation is active, etc
+  models:
+  - dmn_bookings_versioned
+
+- name: is_all_services_confirmed
+  description: Boolean flag indicating whether all services for the booking have been
+    confirmed with suppliers
+  models:
+  - dmn_bookings_versioned
+
+- name: is_cancelled
+  description: Boolean flag indicating whether the booking has been cancelled
+  models:
+  - dmn_bookings_versioned
+
+- name: is_confirmed
+  description: Boolean flag indicating whether the booking has been confirmed (deposit
+    paid)
+  models:
+  - dmn_bookings_versioned
+
+- name: is_deleted
+  description: Boolean flag indicating whether the record has been soft-deleted
+  models:
+  - dmn_bookings_versioned
+
+- name: is_first_booking
+  description: Boolean flag indicating whether this is the customer's first booking
+    by booked_date (prior_booking_count = 0). Defaults to true for bookings with no
+    customer_id.
+  models:
+  - dmn_bookings_versioned
+
+- name: is_gross_departure_revenue_eligible
+  description: 'True when this booking version is eligible for gross departure revenue
+    reporting: high_booking_status in (Provisional, Pending, Confirmed) and departure_date
+    is not null. The py_seed_max_fy year cutoff is applied downstream in int_bookings_departure_frozen.
+
+    '
+  models:
+  - dmn_bookings_versioned
+
+- name: is_online_booking
+  description: True when the booking was initiated via the website booking engine
+    (source_of_enquiry_code = FBE — Front End Booking Engine). False for all sales-assisted
+    bookings. Never null.
+  models:
+  - dmn_bookings_versioned
+
+- name: is_provisional
+  description: Boolean flag indicating whether the booking is in provisional status
+    (not yet confirmed)
+  models:
+  - dmn_bookings_versioned
+
+- name: is_third_party_supplier
+  description: Whether tour is operated by third-party supplier
+  models:
+  - dmn_bookings_versioned
+
+- name: items
+  description: Semi-structured VARIANT array containing ecommerce item details (item_id,
+    item_name, price, quantity, etc.). Only populated for ecommerce events like view_item,
+    add_to_cart, purchase.
+  models:
+  - stg_ga4_events
+
+- name: legacy_booking_status
+  description: 'Booking status where the raw BKG_HEADER label is treated as authoritative.
+    Falls back to the booking_status seed join only when the raw label is absent (Fivetran
+    rows). Preserves ''UNKNOWN'', ''Expired quotation'', and ''Expired provisional''
+    labels from BKG_HEADER rather than overwriting them with the seed-resolved value.
+    Null for Fivetran-only rows where no legacy label exists.
+
+    '
+  models:
+  - dmn_bookings_versioned
+
+- name: legacy_high_booking_status
+  description: 'High-level booking status grouping derived from the raw BKG_HEADER
+    label rather than the seed join. When the raw label is present, high status is
+    derived directly from the label string (same grouping logic as high_booking_status).
+    When absent (Fivetran rows), falls back to the seed-resolved high_booking_status.
+    Preserves ''UNKNOWN'' for rows where the source label is ''UNKNOWN'', ''Expired
+    quotation'', or ''Expired provisional''.
+
+    '
+  models:
+  - dmn_bookings_versioned
+
+- name: link_domain
+  description: The domain of a link clicked by the user. Captured on click events
+    to track internal & external navigation
+  models:
+  - stg_ga4_events
+
+- name: link_url
+  description: The full URL of a link clicked by the user. Captured on click events
+    to track internal & external destinations.
+  models:
+  - stg_ga4_events
+
+- name: loyalty_grouping
+  description: Customer loyalty tier derived from prior_booking_count. 1. New Customer
+    (0 prior), 2. First Timers (1 prior), 3. Repeat (2 prior), 4. Frequent (3–4 prior),
+    5. Loyal (5+ prior). Null when customer_id is null.
+  models:
+  - dmn_bookings_versioned
+
+- name: marketing_segment
+  description: 'Customer segment derived from passenger count and customer age at
+    booked_date. Age threshold for Young vs Older Couple is 50 years (matches Power
+    BI stored proc logic). Values: Solo (1 pax), Young Couple (2 pax, age < 50), Older
+    Couple (2 pax, age >= 50), Adult Group (3+ pax), Unknown Couple (2 pax, no DOB
+    available), Other (segment) (0 or null pax).
+
+    '
+  models:
+  - dmn_bookings_versioned
+
+- name: modified_by_user_id
+  description: User who last modified the record
+  models:
+  - dmn_bookings_versioned
+
+- name: modified_date
+  description: Timestamp when the record was last modified
+  models:
+  - dmn_bookings_versioned
+
+- name: netsuite_customer_id
+  description: Customer identifier in NetSuite accounting system
+  models:
+  - dmn_bookings_versioned
+
+- name: operations_owner_id
+  description: Foreign key to stg_users - operations team member assigned to booking
+  models:
+  - dmn_bookings_versioned
+
+- name: operations_owner_name
+  description: Full name of the operations team member assigned to the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: operations_status
+  description: Current operations workflow status of the booking (e.g., Confirmed,
+    On Hold, Complete)
+  models:
+  - dmn_bookings_versioned
+
+- name: operations_status_id
+  description: Foreign key to stg_operations_status
+  models:
+  - dmn_bookings_versioned
+
+- name: ops_team_role
+  description: Role of the operations team member assigned to the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: page_location
+  description: The full URL of the page where the event occurred. Useful for understanding
+    which tour pages, destinations, or content drive engagement and conversions.
+  models:
+  - stg_ga4_events
+
+- name: page_referrer
+  description: The URL of the page that referred the user to the current page. Null
+    if ignore_referrer is true (internal navigation) or if no referrer was captured.
+  models:
+  - stg_ga4_events
+
+- name: page_title
+  description: The HTML title of the page where the event occurred. Provides context
+    about the content the user was viewing (e.g., tour names, destination guides).
+  models:
+  - stg_ga4_events
+
+- name: paid_amount
+  description: Amount paid by customer in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: paid_amount_eur
+  description: Amount paid by customer converted to EUR
+  models:
+  - dmn_bookings_versioned
+
+- name: paid_amount_gbp
+  description: Amount paid by customer converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: paid_amount_usd
+  description: Amount paid by customer converted to USD
+  models:
+  - dmn_bookings_versioned
+
+- name: payment_status
+  description: Current payment status of the booking (e.g., Deposit Paid, Fully Paid,
+    Refunded)
+  models:
+  - dmn_bookings_versioned
+
+- name: payment_status_code
+  description: Payment status code (maps to payment_status seed)
+  models:
+  - dmn_bookings_versioned
+
+- name: percent_scrolled
+  description: The percentage of the page vertically scrolled by the user (e.g., 25,
+    50, 75, 90). Captured on scroll events to measure content engagement depth.
+  models:
+  - stg_ga4_events
+
+- name: platform
+  description: 'The platform where the event was captured: ''WEB'' for website, ''IOS''
+    or ''ANDROID'' for mobile apps.'
+  models:
+  - stg_ga4_events
+
+- name: prior_booking_count
+  description: Count of non-cancelled/abandoned bookings made by this customer before
+    the current booking, ordered by booking_date. Same-date bookings do not count
+    each other. Zero for a customer's first booking. Null when customer_id is null.
+  models:
+  - dmn_bookings_versioned
+
+- name: privacy_info_ads_storage
+  description: Whether the user has consented to ads storage (cookie consent). Affects
+    remarketing and conversion tracking capabilities.
+  models:
+  - stg_ga4_events
+
+- name: privacy_info_analytics_storage
+  description: Whether the user has consented to analytics storage (cookie consent).
+    Affects the completeness of user journey tracking.
+  models:
+  - stg_ga4_events
+
+- name: privacy_info_uses_transient_token
+  description: Boolean indicating whether GA4 is using a transient token instead of
+    cookies due to consent restrictions. When true, user_pseudo_id changes each session.
+  models:
+  - stg_ga4_events
+
+- name: product
+  description: The tour product category associated with the event (e.g., 'walking',
+    'cycling', 'pilgrimage'). Extracted from event_params on ecommerce events (view_item,
+    add_to_cart, purchase). Used for product-level performance analysis and aligning
+    conversions to trip types.
+  models:
+  - stg_ga4_events
+
+- name: quotation_id
+  description: Foreign key to stg_quotations
+  models:
+  - dmn_bookings_versioned
+
+- name: quotation_ref
+  description: Quotation reference (e.g., QUO00000086). Human-readable business identifier
+    for quotations.
+  models:
+  - dmn_bookings_versioned
+
+- name: quote_reference
+  description: The unique quote/booking reference number that links GA4 frontend events
+    to vSourz backend booking data. Critical for connecting marketing attribution
+    to actual trip bookings and revenue.
+  models:
+  - stg_ga4_events
+
+- name: quote_uuid
+  description: The universally unique identifier for the quote, used as an alternative
+    key for joining to vSourz booking data.
+  models:
+  - stg_ga4_events
+
+- name: run_id
+  description: The unique identifier of the data ingestion run that loaded this record.
+    Used for data lineage and debugging ingestion issues.
+  models:
+  - stg_ga4_events
+
+- name: sales_owner_id
+  description: Foreign key to stg_users - sales team member assigned to booking
+  models:
+  - dmn_bookings_versioned
+
+- name: sales_owner_name
+  description: Full name of the sales team member assigned to the booking or enquiry
+  models:
+  - dmn_bookings_versioned
+
+- name: sales_team_role
+  description: Role of the sales team member assigned to the booking
+  models:
+  - dmn_bookings_versioned
+
+- name: search_term
+  description: The search query that brought the user to the site from a search engine.
+    Frequently null as most search engines (including Google) encrypt search terms
+    for privacy. Only reliably populated for paid search campaigns with keyword tracking
+    enabled.
+  models:
+  - stg_ga4_events
+
+- name: session_id
+  description: Surrogate key for the session, generated by hashing user_pseudo_id
+    + ga_session_id. For users who declined analytics cookies, each event gets a unique
+    session_id (hashed from event_id), meaning these 'sessions' contain only one event
+    and cannot be aggregated into true session behaviour. See stg_ga4_events model
+    description for generation logic.
+  models:
+  - stg_ga4_events
+
+- name: session_scope_campaign_id
+  description: The campaign ID from GA4's session-level last-click attribution (session_traffic_source_last_click).
+    Represents the manually-tagged campaign ID for the session.
+  models:
+  - stg_ga4_events
+
+- name: session_scope_campaign_name
+  description: The campaign name from GA4's session-level last-click attribution (session_traffic_source_last_click).
+    Represents the manually-tagged campaign name for the session.
+  models:
+  - stg_ga4_events
+
+- name: session_scope_content
+  description: The UTM content parameter from GA4's session-level last-click attribution.
+    Used for ad variation and A/B test tracking at session level.
+  models:
+  - stg_ga4_events
+
+- name: session_scope_medium
+  description: The medium from GA4's session-level last-click attribution (session_traffic_source_last_click).
+    Represents the manually-tagged medium for the session.
+  models:
+  - stg_ga4_events
+
+- name: session_scope_source
+  description: The source from GA4's session-level last-click attribution (session_traffic_source_last_click).
+    Represents the manually-tagged source for the session.
+  models:
+  - stg_ga4_events
+
+- name: session_scope_term
+  description: The UTM term parameter from GA4's session-level last-click attribution.
+    Used for paid search keyword tracking at session level.
+  models:
+  - stg_ga4_events
+
+- name: source_of_enquiry
+  description: Display name of the enquiry source (e.g., Website, Phone, Partner)
+  models:
+  - dmn_bookings_versioned
+
+- name: source_of_enquiry_code
+  description: Short code for the enquiry source
+  models:
+  - dmn_bookings_versioned
+
+- name: source_of_enquiry_id
+  description: Foreign key to stg_source_of_enquiry - not the marketing channel, but
+    rather the section of the website, or phone system.
+  models:
+  - dmn_bookings_versioned
+
+- name: source_table_date
+  description: The date partition of the source GA4 export table. Used for incremental
+    processing and data freshness tracking.
+  models:
+  - stg_ga4_events
+
+- name: start_point
+  description: Name of the starting location for the tour
+  models:
+  - dmn_bookings_versioned
+
+- name: stream_id
+  description: The GA4 data stream identifier. Different streams may represent different
+    Macs Adventure websites (UK, US, Germany) or platforms.
+  models:
+  - stg_ga4_events
+
+- name: supplier_converted_amount
+  description: Supplier cost converted in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: supplier_converted_amount_gbp
+  description: Supplier cost converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount
+  description: Total booking value in booking currency
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount_eur
+  description: Total booking value converted to EUR
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount_eur_booked_fy
+  description: Total booking value in EUR using financial year FX rates
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount_gbp
+  description: Total booking value converted to GBP
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount_gbp_booked_fy
+  description: Total booking value in GBP using financial year FX rates
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount_usd
+  description: Total booking value converted to USD
+  models:
+  - dmn_bookings_versioned
+
+- name: total_amount_usd_booked_fy
+  description: Total booking value in USD using financial year FX rates
+  models:
+  - dmn_bookings_versioned
+
+- name: total_passengers
+  description: Total passenger count (adults + children + infants)
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_cms_booking_ref
+  description: Booking reference from the separate CMS system. Human-readable business
+    identifier.
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_code
+  description: Unique tour product code (e.g., WTMB-7)
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_code_supplier
+  description: Supplier's internal code for this tour (from stg_tours)
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_country
+  description: Primary country where the tour takes place.
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_country_code
+  description: ISO country code where the tour takes place
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_duration
+  description: Duration of the tour in days
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_name
+  description: Display name of the tour
+  models:
+  - dmn_bookings_versioned
+
+- name: tour_range
+  description: Tour range classification (e.g., Classic Routes, Slower Adventures,
+    Pilgrimages, Discovery). Derived from the route type in dmn_tours. Defaults to
+    Other when no route type is mapped.
+  models:
+  - dmn_bookings_versioned
+
+- name: travel_to_date
+  description: End date of the travel period
+  models:
+  - dmn_bookings_versioned
+
+- name: user_first_touch_timestamp
+  description: The timestamp (microseconds since epoch) of the user's very first interaction
+    with Macs Adventure. Used for cohort analysis and customer lifetime calculations.
+  models:
+  - stg_ga4_events
+
+- name: user_id
+  description: The authenticated user identifier from the vSource backend system.
+    Set when users log in or complete bookings. Critical for cross-session identity
+    resolution and joining GA4 events to backend booking data. See int_session_identities
+    model description for identity resolution logic.
+  models:
+  - stg_ga4_events
+
+- name: user_properties
+  description: Semi-structured VARIANT column containing user-scoped properties set
+    via gtag or Firebase SDK. Access values using user_properties:property_name:value::datatype
+    syntax.
+  models:
+  - stg_ga4_events
+
+- name: user_pseudo_id
+  description: The anonymous GA4 client identifier (cookie-based). Persists across
+    sessions on the same device/browser but cannot track users across devices. Linked
+    to user_id when users authenticate. See int_session_identities model description
+    for identity resolution logic.
+  models:
+  - stg_ga4_events
+
+- name: valid_from
+  description: Timestamp indicating when a record became valid. Used in SCD2 pattern
+    for tracking historical changes to identity mappings. See int_session_identities_timestitched
+    model description for temporal validity logic.
+  models:
+  - dmn_bookings_versioned
+
+- name: valid_to
+  description: Timestamp indicating when a record ceased to be valid. Null indicates
+    the current/active record. Used in SCD2 pattern - filter with valid_to IS NULL
+    for latest state. See int_session_identities_timestitched model description for
+    temporal validity logic.
+  models:
+  - dmn_bookings_versioned
+
+- name: version_number
+  description: Version sequence number from BKG_HEADER (DB_VERSION_NUMBER).
+  models:
+  - dmn_bookings_versioned
