@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbt-datadict"
-version = "0.4.0"
+version = "0.4.1"
 description = "Tool for managing consistent column descriptions across a dbt project."
 authors = [
     {name = "tom", email = "tom@tasman.ai"}
