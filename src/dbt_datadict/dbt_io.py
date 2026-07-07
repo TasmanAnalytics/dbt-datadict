@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import subprocess
@@ -6,6 +5,10 @@ from datetime import datetime, timedelta
 
 import ijson
 import ruamel.yaml
+
+# Default timeout for subprocess calls (in seconds)
+# Large dbt projects can take several minutes to parse.
+DEFAULT_SUBPROCESS_TIMEOUT = 300
 
 
 def parse_bash_outputs(input_string: str) -> str | None:
@@ -29,7 +32,7 @@ def parse_bash_outputs(input_string: str) -> str | None:
             return input_string[version_two_index:]
         return ""
     except Exception as e:
-        logging.error("There was an issue parsing the codegen outputs: " + e)
+        logging.error(f"There was an issue parsing the codegen outputs: {e}")
 
 
 def validate_dbt() -> bool:
@@ -50,11 +53,18 @@ def validate_dbt() -> bool:
     try:
         # Check debug passes
         bash_command = ["dbt", "debug"]
-        result = subprocess.run(  # noqa: S603
-            bash_command,
-            check=False,
-            capture_output=True,
-        ).stdout.decode("UTF-8")
+        try:
+            result = subprocess.run(  # noqa: S603
+                bash_command,
+                check=False,
+                capture_output=True,
+                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
+            ).stdout.decode("UTF-8")
+        except subprocess.TimeoutExpired:
+            logging.error(
+                f"Command '{bash_command[0]} {bash_command[1]}' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+            )
+            return False
         if "All checks passed!" not in result:
             logging.error(
                 "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
@@ -63,11 +73,18 @@ def validate_dbt() -> bool:
 
         # Check codegen installed (warning only, now optional)
         bash_command = ["dbt", "deps"]
-        result = subprocess.run(  # noqa: S603
-            bash_command,
-            check=False,
-            capture_output=True,
-        ).stdout.decode("UTF-8")
+        try:
+            result = subprocess.run(  # noqa: S603
+                bash_command,
+                check=False,
+                capture_output=True,
+                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
+            ).stdout.decode("UTF-8")
+        except subprocess.TimeoutExpired:
+            logging.warning(
+                f"Command '{bash_command[0]} {bash_command[1]}' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+            )
+            # Don't return False here - deps timeout is not fatal
         if "dbt-labs/codegen" not in result:
             logging.warning(
                 "dbt-labs/codegen not found - will use manifest for column metadata if available"
@@ -79,7 +96,7 @@ def validate_dbt() -> bool:
 
     except Exception as e:
         logging.error(
-            "Issues encountered when attempting to validate dbt: " + e
+            f"Issues encountered when attempting to validate dbt: {e}"
         )
         return False
 
@@ -91,9 +108,10 @@ def get_manifest_path() -> str | None:
     Returns:
         str: Absolute path to manifest.json, or None if not found or not in dbt project.
     """
-    if not os.path.exists("dbt_project.yml"):
+    # Check for both .yml and .yaml extensions (dbt supports both)
+    if not (os.path.exists("dbt_project.yml") or os.path.exists("dbt_project.yaml")):
         logging.error(
-            "Not in a dbt project directory (dbt_project.yml not found). "
+            "Not in a dbt project directory (dbt_project.yml or dbt_project.yaml not found). "
             "Please run from your dbt project root."
         )
         return None
@@ -161,11 +179,18 @@ def generate_manifest() -> bool:
     try:
         logging.info("Generating manifest via 'dbt parse'...")
         bash_command = ["dbt", "parse"]
-        result = subprocess.run(  # noqa: S603
-            bash_command,
-            check=False,
-            capture_output=True,
-        )
+        try:
+            result = subprocess.run(  # noqa: S603
+                bash_command,
+                check=False,
+                capture_output=True,
+                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
+            )
+        except subprocess.TimeoutExpired:
+            logging.error(
+                f"Command '{bash_command[0]} {bash_command[1]}' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+            )
+            return False
 
         if result.returncode != 0:
             logging.error(f"dbt parse failed: {result.stderr.decode('UTF-8')}")
@@ -276,7 +301,9 @@ def get_columns_from_manifest(model_names: list[str]) -> dict | None:
         logging.info("Manifest is stale, regenerating...")
         if not generate_manifest():
             logging.warning(
-                "Failed to regenerate manifest, using stale version"
+                "Failed to regenerate stale manifest (dbt parse failed). "
+                "Proceeding with existing manifest, but results may be outdated. "
+                "Run 'dbt parse' manually to refresh."
             )
 
     # 3. Read and extract
@@ -307,14 +334,21 @@ def _get_model_yaml_from_database(model_names: list[str]) -> dict | None:
             "--args",
             str(args),
         ]
-        result = subprocess.run(  # noqa: S603
-            bash_command,
-            check=False,
-            capture_output=True,
-        ).stdout.decode("UTF-8")
+        try:
+            result = subprocess.run(  # noqa: S603
+                bash_command,
+                check=False,
+                capture_output=True,
+                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
+            ).stdout.decode("UTF-8")
+        except subprocess.TimeoutExpired:
+            logging.error(
+                f"Command 'dbt run-operation generate_model_yaml' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+            )
+            return None
         if "Compilation Error" in result:
             logging.error(
-                "Issues encountered when generating the model yaml: " + result
+                f"Issues encountered when generating the model yaml: {result}"
             )
         else:
             yaml = ruamel.yaml.YAML()
@@ -354,6 +388,14 @@ def get_model_yaml(model_names: list[str]) -> dict | None:
             db_result = _get_model_yaml_from_database(list(models_missing))
             if db_result:
                 manifest_result["models"].extend(db_result["models"])
+                logging.info(
+                    f"Successfully retrieved {len(db_result['models'])} models from database"
+                )
+            else:
+                logging.warning(
+                    f"Failed to retrieve models {models_missing} from database. "
+                    f"Returning incomplete results (only {len(manifest_result['models'])} of {len(model_names)} models)."
+                )
 
         return manifest_result
 
