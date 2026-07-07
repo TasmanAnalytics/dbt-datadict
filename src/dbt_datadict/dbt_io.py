@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-from datetime import datetime, timedelta
 
 import ijson
 import ruamel.yaml
@@ -9,6 +8,34 @@ import ruamel.yaml
 # Default timeout for subprocess calls (in seconds)
 # Large dbt projects can take several minutes to parse.
 DEFAULT_SUBPROCESS_TIMEOUT = 300
+
+
+def run_dbt_command(
+    command: list[str], timeout: int = DEFAULT_SUBPROCESS_TIMEOUT
+) -> tuple[bool, str]:
+    """
+    Run dbt command with timeout, return (success, output).
+
+    Args:
+        command: Command to run (e.g., ["dbt", "parse"])
+        timeout: Timeout in seconds
+
+    Returns:
+        Tuple of (success: bool, output: str)
+    """
+    try:
+        result = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            timeout=timeout,
+        )
+        if result.returncode != 0:
+            return False, result.stderr.decode("UTF-8")
+        return True, result.stdout.decode("UTF-8")
+    except subprocess.TimeoutExpired:
+        logging.error(f"Command '{' '.join(command)}' timed out after {timeout}s")
+        return False, ""
 
 
 def parse_bash_outputs(input_string: str) -> str | None:
@@ -52,17 +79,10 @@ def validate_dbt() -> bool:
     logging.info("Validating dbt project...")
     try:
         # Check debug passes
-        bash_command = ["dbt", "debug"]
-        try:
-            result = subprocess.run(  # noqa: S603
-                bash_command,
-                check=False,
-                capture_output=True,
-                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
-            ).stdout.decode("UTF-8")
-        except subprocess.TimeoutExpired:
+        success, result = run_dbt_command(["dbt", "debug"])
+        if not success:
             logging.error(
-                f"Command '{bash_command[0]} {bash_command[1]}' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+                "Issues encountered when running `dbt debug`. Validate `dbt debug` passes before retrying."
             )
             return False
         if "All checks passed!" not in result:
@@ -72,20 +92,13 @@ def validate_dbt() -> bool:
             return False
 
         # Check codegen installed (warning only, now optional)
-        bash_command = ["dbt", "deps"]
-        try:
-            result = subprocess.run(  # noqa: S603
-                bash_command,
-                check=False,
-                capture_output=True,
-                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
-            ).stdout.decode("UTF-8")
-        except subprocess.TimeoutExpired:
+        success, result = run_dbt_command(["dbt", "deps"])
+        if not success:
             logging.warning(
-                f"Command '{bash_command[0]} {bash_command[1]}' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+                "Could not check dbt dependencies (dbt deps failed). "
+                "Assuming manifest-based approach will be used."
             )
-            # Don't return False here - deps timeout is not fatal
-        if "dbt-labs/codegen" not in result:
+        elif "dbt-labs/codegen" not in result:
             logging.warning(
                 "dbt-labs/codegen not found - will use manifest for column metadata if available"
             )
@@ -123,52 +136,6 @@ def get_manifest_path() -> str | None:
     return None
 
 
-def is_manifest_fresh(manifest_path: str, max_age_hours: int = 24) -> bool:
-    """
-    Check if manifest was generated recently using metadata.generated_at.
-
-    Uses streaming to read only the metadata section, avoiding loading entire file.
-
-    Args:
-        manifest_path: Path to manifest.json
-        max_age_hours: Maximum age before considering stale (default: 24 hours)
-
-    Returns:
-        bool: True if manifest is fresh, False if stale or invalid
-    """
-    try:
-        with open(manifest_path, "rb") as f:
-            parser = ijson.items(f, "metadata")
-            for metadata in parser:
-                generated_at_str = metadata.get("generated_at")
-                if not generated_at_str:
-                    logging.warning(
-                        "Manifest missing generated_at timestamp"
-                    )
-                    return False
-
-                generated_at = datetime.fromisoformat(
-                    generated_at_str.replace("Z", "+00:00")
-                )
-                age = datetime.now(generated_at.tzinfo) - generated_at
-                is_fresh = age < timedelta(hours=max_age_hours)
-
-                if not is_fresh:
-                    logging.warning(
-                        f"Manifest is {age.total_seconds() / 3600:.1f} hours old "
-                        f"(threshold: {max_age_hours} hours)"
-                    )
-
-                return is_fresh
-
-        logging.warning("Manifest missing metadata section")
-        return False
-
-    except Exception as e:
-        logging.error(f"Failed to check manifest freshness: {e}")
-        return False
-
-
 def generate_manifest() -> bool:
     """
     Generate or refresh the manifest.json by running dbt parse.
@@ -178,22 +145,10 @@ def generate_manifest() -> bool:
     """
     try:
         logging.info("Generating manifest via 'dbt parse'...")
-        bash_command = ["dbt", "parse"]
-        try:
-            result = subprocess.run(  # noqa: S603
-                bash_command,
-                check=False,
-                capture_output=True,
-                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
-            )
-        except subprocess.TimeoutExpired:
-            logging.error(
-                f"Command '{bash_command[0]} {bash_command[1]}' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
-            )
-            return False
+        success, stderr = run_dbt_command(["dbt", "parse"])
 
-        if result.returncode != 0:
-            logging.error(f"dbt parse failed: {result.stderr.decode('UTF-8')}")
+        if not success:
+            logging.error(f"dbt parse failed: {stderr}")
             return False
 
         if not os.path.exists("target/manifest.json"):
@@ -274,10 +229,10 @@ def extract_columns_from_manifest_streaming(
 
 def get_columns_from_manifest(model_names: list[str]) -> dict | None:
     """
-    Orchestrate manifest-based extraction with auto-generation.
+    Extract column metadata from manifest, ensuring manifest is fresh.
 
-    Attempts to extract column metadata from manifest, automatically generating
-    it if missing or stale.
+    Always regenerates manifest to ensure freshness. dbt parse is relatively
+    cheap (10-30s) compared to the complexity of staleness checking.
 
     Args:
         model_names: List of model names to extract
@@ -285,28 +240,16 @@ def get_columns_from_manifest(model_names: list[str]) -> dict | None:
     Returns:
         dict: Column metadata in standard format, or None if extraction fails
     """
-    # 1. Locate manifest
+    # Always regenerate manifest to ensure freshness
+    logging.info("Generating fresh manifest via 'dbt parse'...")
+    if not generate_manifest():
+        logging.warning("Failed to generate manifest")
+        return None
+
     manifest_path = get_manifest_path()
     if not manifest_path:
-        logging.info("Manifest not found, attempting to generate...")
-        if not generate_manifest():
-            logging.warning("Failed to generate manifest")
-            return None
-        manifest_path = get_manifest_path()
-        if not manifest_path:
-            return None
+        return None
 
-    # 2. Check freshness
-    if not is_manifest_fresh(manifest_path):
-        logging.info("Manifest is stale, regenerating...")
-        if not generate_manifest():
-            logging.warning(
-                "Failed to regenerate stale manifest (dbt parse failed). "
-                "Proceeding with existing manifest, but results may be outdated. "
-                "Run 'dbt parse' manually to refresh."
-            )
-
-    # 3. Read and extract
     return extract_columns_from_manifest_streaming(manifest_path, model_names)
 
 
@@ -327,23 +270,18 @@ def _get_model_yaml_from_database(model_names: list[str]) -> dict | None:
             f"Generating base model for models: {', '.join(model_names)}"
         )
         args = {"model_names": model_names}
-        bash_command = [
+        command = [
             "dbt",
             "run-operation",
             "generate_model_yaml",
             "--args",
             str(args),
         ]
-        try:
-            result = subprocess.run(  # noqa: S603
-                bash_command,
-                check=False,
-                capture_output=True,
-                timeout=DEFAULT_SUBPROCESS_TIMEOUT,
-            ).stdout.decode("UTF-8")
-        except subprocess.TimeoutExpired:
+        success, result = run_dbt_command(command)
+
+        if not success:
             logging.error(
-                f"Command 'dbt run-operation generate_model_yaml' timed out after {DEFAULT_SUBPROCESS_TIMEOUT} seconds"
+                f"Issues encountered when generating the model yaml: {result}"
             )
             return None
         if "Compilation Error" in result:

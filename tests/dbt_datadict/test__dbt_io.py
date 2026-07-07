@@ -93,8 +93,10 @@ def test__parse_bash_outputs__exception_raised__error_logged(
 
 
 class MockCompletedProcess:
-    def __init__(self, returns: Any):
+    def __init__(self, returns: Any, returncode: int = 0):
         self.stdout = types.SimpleNamespace(decode=lambda _: returns)
+        self.stderr = types.SimpleNamespace(decode=lambda _: returns)
+        self.returncode = returncode
 
 
 def test__validate_dbt__happy_path__true_returned(
@@ -331,41 +333,6 @@ def test__get_manifest_path__not_in_dbt_project__returns_none(
     assert "Not in a dbt project directory" in caplog.text
 
 
-def test__is_manifest_fresh__fresh__returns_true(
-    tmp_path: Any,
-):
-    """
-    When manifest was generated recently, is_manifest_fresh returns True.
-    """
-    manifest_file = tmp_path / "manifest.json"
-    manifest_file.write_text(
-        '{"metadata": {"generated_at": "2099-07-07T08:52:26.321188Z"}}'
-    )
-
-    result = dbt_io.is_manifest_fresh(str(manifest_file))
-
-    assert result is True
-
-
-def test__is_manifest_fresh__stale__returns_false(
-    tmp_path: Any,
-    caplog: pytest.LogCaptureFixture,
-):
-    """
-    When manifest is older than max_age_hours, is_manifest_fresh returns False.
-    """
-    manifest_file = tmp_path / "manifest.json"
-    manifest_file.write_text(
-        '{"metadata": {"generated_at": "2020-07-07T08:52:26.321188Z"}}'
-    )
-
-    with caplog.at_level(logging.WARNING):
-        result = dbt_io.is_manifest_fresh(str(manifest_file))
-
-    assert result is False
-    assert "hours old" in caplog.text
-
-
 def test__generate_manifest__success__returns_true(
     tmp_path: Any,
     monkeypatch: pytest.MonkeyPatch,
@@ -380,8 +347,8 @@ def test__generate_manifest__success__returns_true(
             manifest_file = tmp_path / "target" / "manifest.json"
             manifest_file.parent.mkdir(parents=True, exist_ok=True)
             manifest_file.write_text("{}")
-            return types.SimpleNamespace(returncode=0, stderr=b"")
-        return types.SimpleNamespace(returncode=0, stderr=b"")
+            return MockCompletedProcess("", returncode=0)
+        return MockCompletedProcess("", returncode=0)
 
     monkeypatch.setattr(subprocess, "run", mock_run)
     monkeypatch.chdir(tmp_path)
@@ -518,6 +485,12 @@ def test__get_model_yaml__from_manifest__success(
     manifest_dir.mkdir()
     manifest_file = manifest_dir / "manifest.json"
     manifest_file.write_text(manifest_content)
+
+    # Mock subprocess.run for dbt parse call (generates manifest)
+    def mock_run(args, **kwargs):
+        return MockCompletedProcess("", returncode=0)
+
+    monkeypatch.setattr(subprocess, "run", mock_run)
 
     result = dbt_io.get_model_yaml(["test_model"])
 
